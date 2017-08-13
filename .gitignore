@@ -1,3 +1,8 @@
-/.python-version
+#*#
+*~
 
 /output
+
+/.python-version
+__pycache__
+
