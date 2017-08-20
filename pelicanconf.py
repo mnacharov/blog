@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Начаров Михаил'
 SITENAME = 'Заметки о Django'
-SITEURL = ''
+SITEURL = 'https://www.webnach.ru'
 
 PATH = 'content'
 
@@ -12,22 +12,14 @@ TIMEZONE = 'Asia/Yekaterinburg'
 
 DEFAULT_LANG = 'ru'
 
-# Feed generation is usually not desired when developing
-FEED_ALL_ATOM = None
-CATEGORY_FEED_ATOM = None
-TRANSLATION_FEED_ATOM = None
-AUTHOR_FEED_ATOM = None
-AUTHOR_FEED_RSS = None
-
 # Blogroll
-LINKS = (('Pelican', 'http://getpelican.com/'),
-         ('Python.org', 'http://python.org/'),
-         ('Jinja2', 'http://jinja.pocoo.org/'),
-         ('You can modify those links in your config file', '#'),)
+LINKS_WIDGET_NAME='Ссылки'
+LINKS = (('Python.org', 'http://python.org/'),
+         ('Django', 'https://www.djangoproject.com/'),
+         ('Debian', 'https://www.debian.org/'),)
 
 # Social widget
-SOCIAL = (('You can add links in your config file', '#'),
-          ('Another social link', '#'),)
+SOCIAL = (('GitHub', 'https://github.com/mnach/'),)
 
 DEFAULT_PAGINATION = 10
 
@@ -37,7 +29,43 @@ DEFAULT_PAGINATION = 10
 
 DISPLAY_PAGES_ON_MENU = True
 SLUGIFY_SOURCE = 'basename'
-# PLUGIN_PATHS = ['pelican-plugins']
-# PLUGINS = ['read_more_link',]
-STATIC_PATHS = ['images', ]
+STATIC_PATHS = ['images', 'extra/robots.txt',]
+# path-specific metadata
+EXTRA_PATH_METADATA = {
+    'extra/robots.txt': {'path': 'robots.txt'},
+    }
+# Аналитика
+YANDEX_METRIKA = 45091683
 
+THEME='themes/notmyidea/'
+
+# Feed settings #
+RSS_FEED_SUMMARY_ONLY = True
+FEED_DOMAIN = SITEURL
+FEED_ALL_RSS = 'feeds/all.rss.xml'
+CATEGORY_FEED_RSS = 'feeds/%s.rss.xml'
+
+FEED_ALL_ATOM = None
+CATEGORY_FEED_ATOM = None
+TRANSLATION_FEED_ATOM = None
+AUTHOR_FEED_ATOM = None
+AUTHOR_FEED_RSS = None
+
+# Plugins #
+PLUGIN_PATHS = ['pelican-plugins']
+PLUGINS = ['sitemap',]
+
+# Sitemap
+SITEMAP = {
+    'format': 'xml',
+    'priorities': {
+        'articles': 0.9,
+        'indexes': 0.8,
+        'pages': 0.5
+    },
+    'changefreqs': {
+        'articles': 'monthly',
+        'indexes': 'weekly',
+        'pages': 'monthly'
+    }
+}
