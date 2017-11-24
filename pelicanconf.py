@@ -10,10 +10,14 @@ PATH = 'content'
 
 TIMEZONE = 'Asia/Yekaterinburg'
 
-DEFAULT_LANG = 'ru'
+DEFAULT_LANG = 'ru_RU'
+
+DEFAULT_DATE_FORMAT = '%x'
+
+LOCALE = ('ru_RU.utf8', 'en_US.utf8')
 
 # Blogroll
-LINKS_WIDGET_NAME='Ссылки'
+LINKS_WIDGET_NAME = 'Ссылки'
 LINKS = (('Python.org', 'http://python.org/'),
          ('Django', 'https://www.djangoproject.com/'),
          ('Debian', 'https://www.debian.org/'),)
@@ -24,12 +28,12 @@ SOCIAL = (('GitHub', 'https://github.com/mnach/'),)
 DEFAULT_PAGINATION = 10
 
 # Uncomment following line if you want document-relative URLs when developing
-#RELATIVE_URLS = True
+# RELATIVE_URLS = True
 
 
 DISPLAY_PAGES_ON_MENU = True
 SLUGIFY_SOURCE = 'basename'
-STATIC_PATHS = ['images', 'extra/robots.txt',]
+STATIC_PATHS = ['images', 'extra/robots.txt']
 # path-specific metadata
 EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
@@ -37,7 +41,7 @@ EXTRA_PATH_METADATA = {
 # Аналитика
 YANDEX_METRIKA = 45091683
 
-THEME='themes/notmyidea/'
+THEME = 'themes/notmyidea/'
 
 # Feed settings #
 RSS_FEED_SUMMARY_ONLY = True
@@ -53,7 +57,7 @@ AUTHOR_FEED_RSS = None
 
 # Plugins #
 PLUGIN_PATHS = ['pelican-plugins']
-PLUGINS = ['sitemap',]
+PLUGINS = ['sitemap']
 
 # Sitemap
 SITEMAP = {

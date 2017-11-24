@@ -1,24 +1,22 @@
-# -*- coding: utf-8 -*-
 '''
 Sitemap
 -------
 
 The sitemap plugin generates plain-text or XML sitemaps.
 '''
-
 from __future__ import unicode_literals
 
-import re
 import collections
 import os.path
-
-from datetime import datetime
-from logging import warning, info
+import re
 from codecs import open
+from datetime import datetime
+from logging import info, warning
+
+from pelican import contents, signals
+from pelican.utils import get_date
 from pytz import timezone
 
-from pelican import signals, contents
-from pelican.utils import get_date
 
 TXT_HEADER = """{0}/index.html
 {0}/archives.html
@@ -54,6 +52,7 @@ def format_date(date):
         tz = "-00:00"
     return date.strftime("%Y-%m-%dT%H:%M:%S") + tz
 
+
 class SitemapGenerator(object):
 
     def __init__(self, context, settings, path, theme, output_path, *null):
@@ -62,7 +61,6 @@ class SitemapGenerator(object):
         self.context = context
         self.now = datetime.now()
         self.siteurl = settings.get('SITEURL')
-
 
         self.default_timezone = settings.get('TIMEZONE', 'UTC')
         self.timezone = getattr(self, 'timezone', self.default_timezone)
@@ -102,8 +100,7 @@ class SitemapGenerator(object):
                 return
 
             valid_keys = ('articles', 'indexes', 'pages')
-            valid_chfreqs = ('always', 'hourly', 'daily', 'weekly', 'monthly',
-                    'yearly', 'never')
+            valid_chfreqs = ('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never')
 
             if isinstance(pris, dict):
                 # We use items for Py3k compat. .iteritems() otherwise
@@ -137,7 +134,7 @@ class SitemapGenerator(object):
 
         if getattr(page, 'status', 'published') != 'published':
             return
-           
+
         if getattr(page, 'private', 'False') == 'True':
             return
 
@@ -169,7 +166,7 @@ class SitemapGenerator(object):
 
         pageurl = '' if page.url == 'index.html' else page.url
 
-        #Exclude URLs from the sitemap:
+        # Exclude URLs from the sitemap:
         if self.format == 'xml':
             flag = False
             for regstr in self.sitemapExclude:
@@ -205,10 +202,10 @@ class SitemapGenerator(object):
     def generate_output(self, writer):
         path = os.path.join(self.output_path, 'sitemap.{0}'.format(self.format))
 
-        pages = self.context['pages'] + self.context['articles'] \
-                + [ c for (c, a) in self.context['categories']] \
-                + [ t for (t, a) in self.context['tags']] \
-                + [ a for (a, b) in self.context['authors']]
+        pages = (self.context['pages'] + self.context['articles'] +
+                 [c for (c, a) in self.context['categories']] +
+                 [t for (t, a) in self.context['tags']] +
+                 [a for (a, b) in self.context['authors']])
 
         self.set_url_wrappers_modification_date(self.context['categories'])
         self.set_url_wrappers_modification_date(self.context['tags'])

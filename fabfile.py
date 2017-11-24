@@ -1,11 +1,12 @@
-from fabric.api import *
-import fabric.contrib.project as project
 import os
 import shutil
+import SocketServer  # NOQA
 import sys
-import SocketServer
 
 from pelican.server import ComplexHTTPRequestHandler
+
+import fabric.contrib.project as project  # NOQA
+from fabric.api import env, hosts, lcd, local  # NOQA
 
 # Local path configuration (can be absolute or relative to fabfile)
 env.deploy_path = 'output'
@@ -26,23 +27,28 @@ env.github_pages_branch = "gh-pages"
 # Port for `serve`
 PORT = 8000
 
+
 def clean():
     """Remove generated files"""
     if os.path.isdir(DEPLOY_PATH):
         shutil.rmtree(DEPLOY_PATH)
         os.makedirs(DEPLOY_PATH)
 
+
 def build():
     """Build local version of site"""
     local('pelican -s pelicanconf.py')
+
 
 def rebuild():
     """`build` with the delete switch"""
     local('pelican -d -s pelicanconf.py')
 
+
 def regenerate():
     """Automatically regenerate site upon file modification"""
     local('pelican -r -s pelicanconf.py')
+
 
 def serve():
     """Serve site at http://localhost:8000/"""
@@ -56,14 +62,17 @@ def serve():
     sys.stderr.write('Serving on port {0} ...\n'.format(PORT))
     server.serve_forever()
 
+
 def reserve():
     """`build`, then `serve`"""
     build()
     serve()
 
+
 def preview():
     """Build production version of site"""
     local('pelican -s publishconf.py')
+
 
 def cf_upload():
     """Publish to Rackspace Cloud Files"""
@@ -73,6 +82,7 @@ def cf_upload():
               '-U {cloudfiles_username} '
               '-K {cloudfiles_api_key} '
               'upload -c {cloudfiles_container} .'.format(**env))
+
 
 @hosts(production)
 def publish():
@@ -85,6 +95,7 @@ def publish():
         delete=True,
         extra_opts='-c',
     )
+
 
 def gh_pages():
     """Publish to GitHub Pages"""
