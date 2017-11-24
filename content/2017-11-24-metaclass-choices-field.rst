@@ -3,13 +3,12 @@
 =========================================
 
 :slug: python-metaclass-django-orm-choicefield
-:date: 2017-11-22 14:38:44 +0500
+:date: 2017-11-22 11:48:44 +0500
 :category: django
 :tags: django, python
 
-# TODO: Картинка
-.. image:: {filename}/images/2017-02-11-build-debian-package-pyenv-python-version-management.jpg
-   :alt: Террариум Гвидо Мокафико
+.. image:: {filename}/images/2017-11-24-we-need-to-go-deeper.jpg
+   :alt: We need to go deeper
    :width: 320px
    :align: left
    :class: post-image
@@ -27,9 +26,11 @@
 вместо этого мы описываем поля базы данных на уровне класса.
 
 Такой синтаксис возможен благодоря *мета-классам*: классам которые создают классы. Базовый мета-класс `type` -
-используется при создании класса с помощью спец-слова `class`. В блоге веб-студии jetfix довольно развёрнутое
+используется при создании класса с помощью спец-слова `class`. В блоге веб-студии jetfix написали довольно развёрнутое
 `введение в метаклассы`_. Ну а я рассмотрю пример их практического применения для атрибута choices в models.CharField
 и forms.ChoiceField.
+
+.. _введение в метаклассы: http://blog.jetfix.ru/post/metaklassy-razrushenie-mifov
 
 ----
 Цель
@@ -79,7 +80,7 @@
 
 Хотя данный способ уже достаточно удобный, он обладает некоторой избыточностью:
 
-* Для объявления одного типа мы должны написать имя константы дважды: при инициализации и в choices
+* Для объявления одного типа мы должны написать имя константы дважды: при инициализации и при добавлении в choices
 * Обязательный атрибут max_length не информативен - никак не отражает связь с длиной возможных значений
 
 -------
@@ -106,8 +107,61 @@
         width = models.IntegerField('Толщина')
         material = models.CharField('Материал', max_length=len(RingMaterial), choices=RingMaterial)
 
-Что скажете? По-моему - так гораздо локаничней.
+Ну вот, так гораздо локаничней!
 
 А вот и реализация класса Choices, предоставляющего нам эту "магию":
 
-.. _введение в метаклассы: http://blog.jetfix.ru/post/metaklassy-razrushenie-mifov
+.. code-block:: python
+
+    class ChoicesMetaclass(type):
+        field_re = re.compile('^[A-Z][^a-z]*$')
+
+        def __new__(cls, name, bases, dct):
+            choices = []
+            for field, value in tuple(dct.items()):
+                if cls.field_re.match(field):
+                    if isinstance(value, tuple) and len(value) == 2:
+                        choice, message = value
+                        dct[field] = choice
+                    elif isinstance(value, str):
+                        choice, message = value, field
+                    else:
+                        continue
+                    choices.append((choice, message))
+            dct['choices'] = tuple(choices)
+            return super(ChoicesMetaclass, cls).__new__(cls, name, bases, dct)
+
+        def __iter__(self):
+            return self.choices.__iter__()
+
+        def __len__(self):
+            if self.choices:
+                return max(len(field) for field, value in self.choices)
+            return 0
+
+Итак, главное что делает этот метакласс определено в методе __new__: сбор статических переменных класса
+объявленных без букв нижнего регистра и инициализированных строкой или кортежем с двумя значениями в переменную choices.
+
+Таким образом у нас 2 варианта инициализации одного из choices:
+
+  1. `MIDDLE = 'M'` тогда в choices подставится `('M', 'MIDDLE')`
+  2. через кортеж `MIDDLE = ('M', 'Средний')`, значение которого перекочует в choices как есть, а в него
+     подставится только значение - `MIDDLE = 'M'`.
+
+Дополнительно, мы определили два "магических" метода:
+
+| `__iter__` - позволяет нам использовать класс как итератор, и избавляет от необходимости обращатся к choices вручную.
+| Писать `choices=Finger.choices` слишком сложно, это же петон :)
+
+`__len__` - вызывается встроеным оператором `len`, и избавляет от необходимости считать размер для CharField
+
+------
+Выводы
+------
+
+Метаклассы существенно расширяют возможности наследования: они позволяют переопределить логику создания новых классов.
+Используя данный инструмент, можно упростить некоторые конструкции в ваших программах.
+
+Но, как говориться "The greater the force, the greater the responsibility", не дайте себе всё испортить!
+
+Пока! Наслаждайтесь кодом!
