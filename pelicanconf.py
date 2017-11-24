@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 AUTHOR = 'Начаров Михаил'
 SITENAME = 'Заметки о Django'
 SITEURL = 'https://www.webnach.ru'
+# SITEURL = 'file:///home/mnach/src/personal/webnach/output'
 
 PATH = 'content'
 
