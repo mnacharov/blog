@@ -1,1 +1,6 @@
 pelican==3.7.1
+Jinja2==2.10
+pytz==2018.3
+Unidecode==1.0.22
+six==1.11.0
+
