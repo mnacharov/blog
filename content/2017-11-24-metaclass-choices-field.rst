@@ -139,6 +139,9 @@
                 return max(len(field) for field, value in self.choices)
             return 0
 
+    class Choices(metaclass=ChoicesMetaclass):
+        """Базовый класс для описания атрибута choices в forms.ChoiceField и models.CharField"""
+
 Итак, главное что делает этот метакласс определено в методе __new__: сбор статических переменных класса
 объявленных без букв нижнего регистра и инициализированных строкой или кортежем с двумя значениями в переменную choices.
 
