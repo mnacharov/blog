@@ -56,6 +56,7 @@ TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
+DISQUS_SITENAME="www-webnach-ru"
 # Plugins #
 PLUGIN_PATHS = ['pelican-plugins']
 PLUGINS = ['sitemap']
