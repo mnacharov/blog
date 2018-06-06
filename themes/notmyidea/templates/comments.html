@@ -1,1 +1,79 @@
-{% if DISQUS_SITENAME %}<p>Есть <a href="{{ SITEURL }}/{{ article.url }}#disqus_thread">коментарии</a>.</p>{% endif %}
+<section id="pcs-comments">
+  <header>
+    <h2>Комментарии</h2>
+    <hr/>
+  </header>
+  {% if article.comments %}
+  <ul>
+    {% for comment in article.comments recursive %}
+    <li id="comment-{{comment.slug}}">
+      <div class="comment-left">
+	<img    src="{{ SITEURL }}/{{ comment.avatar }}"
+		alt="Avatar"
+		height="{{ PELICAN_COMMENT_SYSTEM_IDENTICON_SIZE }}"
+		width="{{ PELICAN_COMMENT_SYSTEM_IDENTICON_SIZE }}">
+      </div>
+      <div class="comment-body">
+	<div style="float:right;">
+	  <a role="button" href="{{ SITEURL }}/{{ article.url }}#comment-{{comment.slug}}" rel="bookmark" title="Ссылка на этот комментарий">Ссылка</a>
+	  <button onclick="CommentSystem.setReply('{{comment.slug | urlencode}}', '{{comment.author | urlencode}}');">Ответить</button>
+	</div>
+	<h4>
+	  {% if comment.metadata['website'] %}
+	  <a href="{{comment.metadata['website']}}">{{ comment.author }}</a>
+	  {% else %}
+	  {{ comment.author }}
+	  {% endif %}
+	</h4>
+	<p>
+	  Опубликовано в 
+	  <time datetime="{{ comment.date.isoformat() }}" title="{{ comment.date.isoformat() }}">{{ comment.locale_date }}</time>
+	</p>
+	<div class="pcs-comment-content" {# class used as id in comments.js#}>
+	  {{ comment.content }}
+	</div>
+	{% if comment.replies %}
+	<hr>
+	<ul>
+	  {{ loop(comment.replies) }}
+	</ul>
+	{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Комментариев пока не было</p>
+  {% endif %}
+  <section>
+    <form id="pcs-comment-form" action="#">
+      <legend>Добавить комментарий</legend>
+      <input type="hidden" id="pcs-comment-form-input-replyto">
+      <fieldset>
+	<label for="pcs-comment-form-input-name">Имя</label>
+	<input  id="pcs-comment-form-input-name" type="text" placeholder="" />
+      </fieldset>
+      <fieldset>
+	<label for="pcs-comment-form-input-website">Вебсайт (если есть)</label>
+	<input  id="pcs-comment-form-input-website" type="text" placeholder="" />
+      </fieldset>
+      <fieldset>
+	<label   for="pcs-comment-form-input-textarea">Комментарий</label>
+	<textarea id="pcs-comment-form-input-textarea" rows="5" style="resize:vertical;" placeholder=""></textarea>
+	<p>Можете воспользоваться разметкой <a href="https://ru.wikipedia.org/wiki/Markdown">Markdown</a>.</p>
+	<div style="display: none;" id="pcs-comment-form-display-replyto"></div>
+      </fieldset>
+      
+      <button type="submit" id="pcs-comment-form-button-submit">
+	Опубликовать через письмо
+      </button>
+      
+      {% if PELICAN_COMMENT_SYSTEM_FEED and article %}
+      <a href="{{ SITEURL }}/{{ PELICAN_COMMENT_SYSTEM_FEED|format(article.slug) }}">
+	Лента комментариев
+      </a>
+      {% endif %}
+    </form>
+  </section>
+  {{ pcs.comments_js("comment", "webnach.ru") }}
+</section>

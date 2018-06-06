@@ -9,7 +9,7 @@
             <aside id="featured" class="body">
                 <article>
                     <h1 class="entry-title"><a href="{{ SITEURL }}/{{ article.url }}">{{ article.title }}</a></h1>
-                    {% include 'article_infos.html' %}{{ article.content }}{% include 'comments.html' %}
+                    {% include 'article_infos.html' %}{{ article.content }}{% include 'has_comments.html' %}
                 </article>
             </aside><!-- /#featured -->
             {% if loop.length > 1 %}
@@ -34,7 +34,7 @@
                 {% include 'article_infos.html' %}
                 {{ article.summary }}
                 <a class="readmore" href="{{ SITEURL }}/{{ article.url }}">читать дальше</a>
-                {% include 'comments.html' %}
+                {% include 'has_comments.html' %}
                 </div><!-- /.entry-content -->
             </article></li>
         {% endif %}

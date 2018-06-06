@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Начаров Михаил'
 SITENAME = 'Заметки о Django'
-SITEURL = 'https://www.webnach.ru'
-# SITEURL = '.'
+# SITEURL = 'https://www.webnach.ru'
+SITEURL = '.'
 
 PATH = 'content'
 
@@ -29,7 +29,7 @@ SOCIAL = (('GitHub', 'https://github.com/mnach/'),)
 DEFAULT_PAGINATION = 10
 
 # Uncomment following line if you want document-relative URLs when developing
-# RELATIVE_URLS = True
+RELATIVE_URLS = True
 
 
 DISPLAY_PAGES_ON_MENU = True
@@ -56,10 +56,21 @@ TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
-DISQUS_SITENAME="www-webnach-ru"
+PELICAN_COMMENT_SYSTEM = True
+PELICAN_COMMENT_SYSTEM_IDENTICON_DATA = ('author', 'email')
 # Plugins #
 PLUGIN_PATHS = ['pelican-plugins']
-PLUGINS = ['sitemap']
+PLUGINS = ['sitemap', 'pelican_comment_system']
+
+# Markdown for comments
+MARKDOWN = {
+    'extension_configs': {
+        'markdown.extensions.codehilite': {'css_class': 'highlight'},
+        'markdown.extensions.extra': {},
+        'markdown.extensions.meta': {},
+    },
+    'output_format': 'html5',
+}
 
 # Sitemap
 SITEMAP = {

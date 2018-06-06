@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% import 'pcs/comments.html' as pcs with context %}
+
 {% block title %}{{ article.title|striptags }}{% endblock %}
 {% block content %}
 <section id="content" class="body">
@@ -7,31 +9,15 @@
       <h1 class="entry-title">
         <a href="{{ SITEURL }}/{{ article.url }}" rel="bookmark"
            title="Открыть {{ article.title|striptags }}">{{ article.title }}</a></h1>
-      {% include 'twitter.html' %}
+      {# {% include 'twitter.html' %} #}
     </header>
 
     <div class="entry-content">
       {% include 'article_infos.html' %}
       {{ article.content }}
     </div><!-- /.entry-content -->
-    {% if DISQUS_SITENAME and SITEURL and article.status != "draft" %}
-    <div class="comments">
-      <h2>Коментарии !</h2>
-      <div id="disqus_thread"></div>
-      <script type="text/javascript">
-        var disqus_shortname = '{{ DISQUS_SITENAME }}';
-        var disqus_identifier = '{{ article.url }}';
-        var disqus_url = '{{ SITEURL }}/{{ article.url }}';
-        (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = '//{{ DISQUS_SITENAME }}.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-      </script>
-      <noscript>Пожалуйста включите JavaScript чтобы увидеть коментарии.</noscript>
-    </div>
-    {% endif %}
-
+    
+    {% include 'comments.html' with context %}
   </article>
 </section>
 {% endblock %}
