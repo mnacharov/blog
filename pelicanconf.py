@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Начаров Михаил'
 SITENAME = 'Заметки о Django'
-# SITEURL = 'https://www.webnach.ru'
-SITEURL = '.'
+SITEURL = 'https://www.webnach.ru'
+# SITEURL = '.'
 
 PATH = 'content'
 
