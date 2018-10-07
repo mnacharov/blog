@@ -9,6 +9,7 @@ import sys
 sys.path.append(os.curdir)
 from pelicanconf import *  # NOQA
 
+OUTPUT_PATH = 'public'
 SITEURL = 'http://www.webnach.ru'
 RELATIVE_URLS = False
 
