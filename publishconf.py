@@ -10,8 +10,8 @@ sys.path.append(os.curdir)
 from pelicanconf import *  # NOQA
 
 OUTPUT_PATH = 'public'
-SITEURL = 'http://www.webnach.ru'
-RELATIVE_URLS = False
+SITEURL = 'https://www.webnach.ru'
+RELATIVE_URLS = True
 
 FEED_ALL_ATOM = 'feeds/all.atom.xml'
 CATEGORY_FEED_ATOM = 'feeds/%s.atom.xml'
