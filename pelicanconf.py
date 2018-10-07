@@ -37,7 +37,8 @@ STATIC_PATHS = ['images', 'extra/robots.txt', 'extra/.well-known']
 # path-specific metadata
 EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
-    }
+    'extra/.well-known': {'path': '.well-known'},
+}
 # Аналитика
 YANDEX_METRIKA = 45091683
 
