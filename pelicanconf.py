@@ -33,7 +33,7 @@ RELATIVE_URLS = True
 
 DISPLAY_PAGES_ON_MENU = True
 SLUGIFY_SOURCE = 'basename'
-STATIC_PATHS = ['images', 'extra/robots.txt']
+STATIC_PATHS = ['images', 'extra/robots.txt', 'extra/.well-known']
 # path-specific metadata
 EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
