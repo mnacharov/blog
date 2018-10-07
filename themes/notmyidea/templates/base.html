@@ -18,7 +18,7 @@
 </head>
 
 <body id="index" class="home">
-{% include 'github.html' %}
+
         <header id="banner" class="body">
                 <h1><a href="{{ SITEURL }}/">{{ SITENAME }} {% if SITESUBTITLE %} <strong>{{ SITESUBTITLE }}</strong>{% endif %}</a></h1>
                 <nav><ul>
@@ -70,14 +70,8 @@
         </section><!-- /#extras -->
 
         <footer id="contentinfo" class="body">
-                <address id="about" class="vcard body">
-                Создано с <a href="http://getpelican.com/">Pelican</a>, что берёт свою силу в <a href="http://python.org">Python</a>.
-                </address><!-- /#about -->
-
-                <p>Тема создана <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, спасибо ему!</p>
         </footer><!-- /#contentinfo -->
 
 {% include 'analytics.html' %}
-{% include 'disqus_script.html' %}
 </body>
 </html>

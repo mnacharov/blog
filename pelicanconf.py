@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 AUTHOR = 'Начаров Михаил'
-SITENAME = 'Заметки о Django'
+SITENAME = 'mNach web log'
 SITEURL = 'https://www.webnach.ru'
 # SITEURL = '.'
 
@@ -19,11 +19,10 @@ LOCALE = ('ru_RU.utf8', 'en_US.utf8')
 
 # Blogroll
 LINKS_WIDGET_NAME = 'Ссылки'
-LINKS = (('Python.org', 'http://python.org/'),
-         ('Django', 'https://www.djangoproject.com/'),
-         ('Debian', 'https://www.debian.org/'),)
+LINKS = ()
 
 # Social widget
+SOCIAL_WIDGET_NAME = "Контакты"
 SOCIAL = (('GitHub', 'https://github.com/mnach/'),)
 
 DEFAULT_PAGINATION = 10
@@ -60,7 +59,7 @@ PELICAN_COMMENT_SYSTEM = True
 PELICAN_COMMENT_SYSTEM_IDENTICON_DATA = ('author', 'email')
 # Plugins #
 PLUGIN_PATHS = ['pelican-plugins']
-PLUGINS = ['sitemap', 'pelican_comment_system']
+PLUGINS = ['sitemap', 'pelican_comment_system', ]
 
 # Markdown for comments
 MARKDOWN = {

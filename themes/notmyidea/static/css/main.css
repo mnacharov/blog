@@ -101,6 +101,13 @@ a:hover, a:active {
 h1 a:hover {
     background-color: inherit
 }
+article.hentry h1>a{
+    color: #C74350;
+}
+article.hentry h1>a:hover, article.hentry h1>a:active{
+    text-shadow: 1px 1px 1px #333;
+    color: #C74350;
+}
 
 /* Paragraphs */
 div.line-block,
@@ -235,6 +242,10 @@ aside, nav, article, figure {
     width: 800px;
 }
 
+.body-div{
+    background: #fff;
+}
+
 img.right, figure.right {
     float: right;
     margin: 0 0 2em 2em;
@@ -345,6 +356,9 @@ img.left, figure.left {
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
 }
+#featured{
+    background: rgba(255, 255, 255, 0.90);
+}
 
 #featured figure {
     border: 2px solid #eee;
@@ -392,13 +406,26 @@ img.left, figure.left {
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
 }
+#content {
+    background: rgba(255, 255, 255, 0.90);
+}
 
 /*
 	Extras
 *****************/
 #extras {
-    margin: 0 auto 3em auto;
+    background: #fff;
+    margin-bottom: 2em;
     overflow: hidden;
+    padding: 20px 20px;
+    width: 760px;
+
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
+#extras {
+    background: rgba(255, 255, 255, 0.75);
 }
 
 #extras ul {
@@ -408,6 +435,7 @@ img.left, figure.left {
 
 #extras li {
     border-bottom: 1px solid #fff;
+    display: inline;
 }
 
 #extras h2 {
@@ -419,7 +447,6 @@ img.left, figure.left {
 
 #extras a:link, #extras a:visited {
     color: #444;
-    display: block;
     border-bottom: 1px solid #F4E3E3;
     text-decoration: none;
     padding: .3em .25em;
@@ -443,8 +470,8 @@ img.left, figure.left {
 
 /* Social */
 #extras .social {
-    float: right;
-    width: 175px;
+/*    float: right; */
+/*    width: 175px; */
 }
 
 #extras div[class='social'] a {
