@@ -7,7 +7,7 @@
 :category: django
 :tags: django, python
 
-.. image:: {filename}/images/2017-11-24-we-need-to-go-deeper.jpg
+.. image:: {filename}/images/2017-11-24-we-need-to-go-deeper.jpeg
    :alt: We need to go deeper
    :width: 320px
    :align: left

@@ -8,7 +8,7 @@
 :tags: postfix, smarthost, relay, debian, docker
 
 
-.. image:: {filename}/images/2018-06-03-local-mailrelay-using-postfix.jpg
+.. image:: {filename}/images/2018-06-03-local-mailrelay-using-postfix.jpeg
    :alt: Postfix as mail relay
    :width: 440px
    :align: left

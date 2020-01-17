@@ -8,7 +8,7 @@
 :tags: debian, python, pyenv, Makefile
 
 
-.. image:: {filename}/images/2017-02-11-build-debian-package-pyenv-python-version-management.jpg
+.. image:: {filename}/images/2017-02-11-build-debian-package-pyenv-python-version-management.jpeg
    :alt: Террариум Гвидо Мокафико
    :width: 320px
    :align: left

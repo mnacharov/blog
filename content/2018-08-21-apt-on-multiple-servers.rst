@@ -8,7 +8,7 @@
 :tags: debian, admin, apt
 
 
-.. image:: {filename}/images/2018-08-21-automate-debian-updates.jpg
+.. image:: {filename}/images/2018-08-21-automate-debian-updates.jpeg
    :alt: Automate debian updates
    :width: 440px
    :align: left
