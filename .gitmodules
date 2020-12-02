@@ -1,0 +1,3 @@
+[submodule "y"]
+	path = themes/hyde
+	url = https://github.com/jvanz/pelican-hyde.git

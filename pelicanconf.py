@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 AUTHOR = 'Начаров Михаил'
-SITENAME = 'mNach web log'
-SITEURL = 'https://www.webnach.ru'
+SITENAME = 'mnach'
+SITEURL = 'https://www.mnacharov.ru'
 # SITEURL = '.'
 
 PATH = 'content'
@@ -23,7 +23,7 @@ LINKS = ()
 
 # Social widget
 SOCIAL_WIDGET_NAME = "Контакты"
-SOCIAL = (('GitHub', 'https://github.com/mnach/'),)
+SOCIAL = (('GitHub', 'https://github.com/mnacharov/'),)
 
 DEFAULT_PAGINATION = 10
 
@@ -41,7 +41,9 @@ EXTRA_PATH_METADATA = {
 # Аналитика
 YANDEX_METRIKA = 45091683
 
-THEME = 'themes/notmyidea/'
+THEME = 'themes/hyde/'
+# HYDE Theme
+PROFILE_IMAGE = "avatar.jpg"
 
 # Feed settings #
 RSS_FEED_SUMMARY_ONLY = True
@@ -59,7 +61,7 @@ PELICAN_COMMENT_SYSTEM = True
 PELICAN_COMMENT_SYSTEM_IDENTICON_DATA = ('author', 'email')
 # Plugins #
 PLUGIN_PATHS = ['pelican-plugins']
-PLUGINS = ['sitemap', 'pelican_comment_system', ]
+PLUGINS = ['sitemap', ]
 
 # Markdown for comments
 MARKDOWN = {
