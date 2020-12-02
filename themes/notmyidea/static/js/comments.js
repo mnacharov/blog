@@ -1,1 +1,0 @@
-../../../../pelican-plugins/pelican_comment_system/theme/static/js/comments.js
