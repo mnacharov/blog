@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Локальный почтовый релей средствами postfix" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./local-mailrelay-using-postfix.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/devops.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Локальный почтовый релей средствами postfix</h1>
+	<span class="post-date">06/03/18</span>
+	<img alt="Postfix as mail relay" class="post-image align-left" src="./images/2018-06-03-local-mailrelay-using-postfix.jpeg" style="width: 440px;" />
+<p>Эх.. Давненько я уже ничего не писал. Сложное это дело писать на естественных языках.
+Толи дело на языках программирования! :-) Жаль что NDA часто не даёт выкладывать
+шедевры на всеобщее обозрение. Иногда чуствуешь себя поэтом продающим свой талант.</p>
+<p>Ну, довольно лирики! Сегодня хочу поделиться простым решением отказоустойчивой
+отправки почты с использованием SMTP-сервера postfix установленного локально.</p>
+<div class="section" id="id1">
+<h2>Зачем?</h2>
+<p>Проблема отказов при отправке почты возможна при сетевых ошибках (все мы знаем о
+внезапных блокировках всего интернета РКН), а также при превышении квот на отправку
+писем. Случай с квотами вполне вероятен при использовании публичных серверов для
+отправки писем созданных автоматически (сообщения об ошибках, списки рассылок и т.п.)</p>
+<p>Вариантов решения может быть несколько. У всех один принцип: локальная очередь
+сообщений. Реализация может быть сколь угодно изощерённой - каждый любит свои
+велосипеды..</p>
+<p>Тут опишу пример использования очереди сообщений postfix, e-mail сервера очень часто
+используемого как в качестве локального почтаря (в <cite>*nix</cite> всегда есть место почте),
+так и для построения корпоративных почтовых систем.</p>
+<p>Кстати, дополнительным бонусом локальной очереди e-mail сообщений является скорость
+отправки. Так как письма идут на localhost, они доходят практически мгновенно. И, Вы
+можете не беспокоиться о задержках в вашем web-приложении.</p>
+</div>
+<div class="section" id="id2">
+<h2>Postfix в качестве ретранслятора писем</h2>
+<p>В общем это будет стандартное тупое пошаговое руководство, ни в коем случае не претендующее на полноту. Велком</p>
+<div class="section" id="id3">
+<h3>Ставим!</h3>
+<p>Наш SMTP-сервер есть в репозиториях большинства unix-систем. Буду приводить команды использованные мной на debian 9 (stretch).</p>
+<div class="highlight"><pre><span></span>~# apt-get update
+~# apt-get install postfix
+</pre></div>
+<p>При установке будет предложено выполнить базовую конфигурацию (если нет, переходим к
+следующей главе)</p>
+<div class="highlight"><pre><span></span>Postfix Configuration
+---------------------
+
+Please select the mail server configuration type that best meets your needs.
+
+No configuration:
+ Should be chosen to leave the current configuration unchanged.
+Internet site:
+ Mail is sent and received directly using SMTP.
+Internet with smarthost:
+ Mail is received directly using SMTP or by running a utility such
+ as fetchmail. Outgoing mail is sent using a smarthost.
+Satellite system:
+ All mail is sent to another machine, called a &#39;smarthost&#39;, for delivery.
+Local only:
+ The only delivered mail is the mail for local users. There is no network.
+
+ 1. No configuration  2. Internet Site  3. Internet with smarthost
+ 4. Satellite system  5. Local only
+General type of mail configuration: _
+</pre></div>
+<p>Тут нас спрашивают, как мы хотим использовать postfix:</p>
+<ol class="arabic simple">
+<li>без конфигурации (сделать всё самому)</li>
+<li>Публичный SMTP сервер: сам отправляет и получает почту</li>
+<li>Smarthost - это и есть релей(ретранслятор) почты: получает почту и пересылает её
+публичным серверам для реальной доставки (входит под каким-либо пользователем)</li>
+<li>Satellite - спутник, имеет доступ к Smarthost, не знает как отправлять публичным
+серверам (не хранит учётных данных)</li>
+<li>Локальный: получает почту и сохраняет её в файлики, в пределах одной машины</li>
+</ol>
+<p>Выбираем вариант 3. Мы дадим postfix публичную учётку, а к нему будем стучаться без
+учётки на localhost</p>
+<div class="highlight"><pre><span></span>The &quot;mail name&quot; is the domain name used to &quot;qualify&quot; _ALL_ mail addresses without
+a domain name. This includes mail to and from &lt;root&gt;: please do not make
+your machine send out mail from root@example.org unless root@example.org has told
+you to.
+
+This name will also be used by other programs. It should be the single, fully
+qualified domain name (FQDN).
+
+Thus, if a mail address on the local host is foo@example.org, the correct value
+for this option would be example.org.
+
+System mail name: _
+</pre></div>
+<p>Доменное имя почтаря. Сохраняется в /etc/mailname. Для smarthost не имеет особого
+смысла. Я указал relay.example.com</p>
+<div class="highlight"><pre><span></span>Please specify a domain, host, host:port, [address] or [address]:port. Use the form
+[destination] to turn off MX lookups. Leave this blank for no relay host.
+
+Do not specify more than one host.
+
+The relayhost parameter specifies the default host to send mail to when no entry is
+matched in the optional transport(5) table. When no relay host is given, mail is
+routed directly to the destination.
+
+SMTP relay host (blank for none): _
+</pre></div>
+<p>Просят указать публичный сервер на который наш smarthost будет отправлять письма.
+А &quot;optional transport(5) table&quot;, это более продвинутый случай: по отправителю
+postfix может определять через какой сервер отправлять почту. Тогда указанный в этом
+пункте сервер[:порт] будет использоваться &quot;по-умолчанию&quot;. Пишем, к примеру: <cite>smtp-mail.outlook.com:587</cite>.</p>
+<p>На этом с установкой всё. Наш конфиг к этому времени выглядит <a class="reference external" href="https://bitbucket.org/snippets/webnach/yedpay/revisions/b01c319a981062815f34b552604238ff1506b2f3">примерно так</a></p>
+</div>
+<div class="section" id="id5">
+<h3>Настройка</h3>
+<p>По большому счёту всё что нам осталось сделать это прописать метод аутентификации
+на сервере. Я рассмотрю 2 варианта: первый - все письма отправляются через один
+сервер, второй - сервер зависит от отправителя</p>
+<div class="section" id="id6">
+<h4>Всё просто</h4>
+<p>Давайте в секцию <cite># TLS parameters</cite> добавим следующие опции:</p>
+<pre class="code text literal-block">
+smtp_use_tls = yes
+smtp_tls_security_level = encrypt
+smtp_tls_note_starttls_offer = yes
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+# Authentication
+smtp_sasl_auth_enable = yes
+smtp_sasl_security_options = noanonymous
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+</pre>
+<p>Первые четыре обязывают postfix пользоваться шифрованием. Последние три - указывают
+что на сервер надо ходить под пользователями определёнными в файле sasl_passwd</p>
+<p>А в этом файле укажем нашего пользователя</p>
+<pre class="code text literal-block">
+smtp-mail.outlook.com:587 secret.user&#64;outlook.com:very-strong-password
+</pre>
+<p>И запустим <cite>postmap</cite> для создания файла sals_passwd.db и говорим <cite>postfix</cite> подтянуть
+новую конфигурацию</p>
+<pre class="code bash literal-block">
+~# postmap hash:/etc/postfix/sasl_passwd
+~# postfix reload
+</pre>
+<p>Проверяем:</p>
+<pre class="code bash literal-block">
+~$ <span class="nb">echo</span> <span class="s2">&quot;Test Body&quot;</span><span class="p">|</span> mail -aFrom:secret.user&#64;outlook.com -s <span class="s1">'Testing'</span> secret.user&#64;outlook.com
+</pre>
+<p>Если были проблемы с отправкой смотрим что говорит posfix: <cite>tail -f /var/log/mail.log</cite>.
+Так, например, в моём случае outlook.com отклонял письма так как к аккаунту не был
+привязан телефон. А ещё, я получал ошибку &quot;не найден хост smtp-mail.outlook.com&quot; пока
+не скопировал resolv.conf в chroot-окружение postfix'а:
+<cite>cp /etc/resolv.conf /var/spool/postfix/etc/</cite>.
+Видимо схватил какой-то косяк при установке..</p>
+<p><a class="reference external" href="https://bitbucket.org/snippets/webnach/yedpay/revisions/afbd22e40e513809e931fa596592526d8613394f">Конфигурация</a></p>
+</div>
+<div class="section" id="id8">
+<h4>Чуть сложнее</h4>
+<p>Привяжем второй ящик к нашему ретранслятору, руководствуясь вот этой
+<a class="reference external" href="https://www.cyberciti.biz/faq/postfix-multiple-isp-accounts-smarthost-smtp-client/">замечательной статьёй</a>.</p>
+<p>Добавляем в main.cf:</p>
+<pre class="code text literal-block">
+# Multiple ISP
+smtp_sender_dependent_authentication = yes
+sender_dependent_relayhost_maps = hash:/etc/postfix/relayhost_map
+</pre>
+<p>Создаём файл relayhost_map:</p>
+<pre class="code text literal-block">
+# Per-sender provider
+secret.user&#64;outlook.com         smtp-mail.outlook.com:587
+another.user&#64;yahoo.com          smtp.mail.yahoo.com:587
+</pre>
+<p>И вносим правки в наш файл с паролями sasl_passwd</p>
+<pre class="code text literal-block">
+# Per-sender authentication
+secret.user&#64;outlook.com secret.user&#64;outlook.com:very-strong-password
+another.user&#64;yahoo.com  another.user&#64;yahoo.com:yet-another-password
+
+# Login for the default relayhost
+smtp-mail.outlook.com:587 secret.user&#64;outlook.com:very-strong-password
+</pre>
+<p>Вот и всё! Осталось создать <cite>*.db</cite> файлы для relayhost_map и sasl_passwd и подопнуть
+posfix:</p>
+<pre class="code bash literal-block">
+~# postmap hash:/etc/postfix/sasl_passwd
+~# postmap hash:/etc/postfix/relayhost_map
+~# postfix reload
+</pre>
+<p>Проверяем:</p>
+<pre class="code bash literal-block">
+~$ <span class="nb">echo</span> <span class="s2">&quot;Test Body&quot;</span><span class="p">|</span> mail -aFrom:secret.user&#64;outlook.com -s <span class="s1">'Testing'</span> another.user&#64;yahoo.com
+~$ <span class="nb">echo</span> <span class="s2">&quot;Test Body&quot;</span><span class="p">|</span> mail -aFrom:another.user&#64;yahoo.com -s <span class="s1">'Testing'</span> secret.user&#64;outlook.com
+</pre>
+<p>Получаем по письму в каждом из наших ящиков.</p>
+<p><a class="reference external" href="https://bitbucket.org/snippets/webnach/yedpay/revisions/31b0c879477714ced3fd54c30cd4c5c3d578742a">Результат</a></p>
+</div>
+</div>
+</div>
+<div class="section" id="docker">
+<h2>Docker</h2>
+<p>Ну как не включить пол-слова о модных технологиях!</p>
+<p>Вообще говоря, всё что мы сделали, можно выполнить всего одной командой, если на вашем
+хосте есть докер.</p>
+<p>Я пользовался образом <a class="reference external" href="https://hub.docker.com/r/alterrebe/postfix-relay/">alterrebe/postfix-relay</a> для поднятия релея в одну команду. Но
+в целом, при желании можно собрать и свой, с возможностью нескольких ISP в том числе.</p>
+<pre class="code bash literal-block">
+~# docker run -d -h relay.example.com --name<span class="o">=</span><span class="s2">&quot;mailrelay&quot;</span> <span class="se">\
+</span>     -e <span class="nv">SMTP_LOGIN</span><span class="o">=</span>secret.user&#64;outlook.com -e <span class="nv">SMTP_PASSWORD</span><span class="o">=</span>very-strong-password <span class="se">\
+</span>     -e <span class="nv">EXT_RELAY_HOST</span><span class="o">=</span>smtp-mail.outlook.com -e <span class="nv">EXT_RELAY_PORT</span><span class="o">=</span><span class="m">587</span> -e <span class="nv">USE_TLS</span><span class="o">=</span>yes <span class="se">\
+</span>     -p <span class="m">127</span>.0.0.1:25:25 alterrebe/postfix-relay
+</pre>
+<p>Подняли контейнер с именем mailrelay, в котором запущен postfix, с пробросом портов на
+наш localhost:25. Файлы конфигурации будут созданы на основе переменных окружения
+переданных с помощью флагов -e.</p>
+</div>
+<div class="section" id="id11">
+<h2>Итог</h2>
+<p>Мы подняли postfix в качестве smarthost - ретранслятора почты.</p>
+<p>Он выполняет за нас авторизацию в публичных почтовых сервисах. И, если они оказываются
+недоступными, хранит отправленные нами письма в локальной очереди (файлы).</p>
+<p>Мы можем просматривать очередь сообщений с помощью утилиты <cite>mailq</cite> или <cite>postqueue</cite>.</p>
+<p>В наших веб-приложениях получили:</p>
+<ul class="simple">
+<li>отказоустойчивость отправки (временные сетевые ошибки больше не страшны)</li>
+<li>ускорение отклика в web-приложениях при выполнении действий, приводящих к отправке
+почты</li>
+</ul>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

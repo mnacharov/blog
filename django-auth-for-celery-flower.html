@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Django authorization for Celery Flower" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./django-auth-for-celery-flower.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/django.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Django authorization for Celery Flower</h1>
+	<span class="post-date">10/07/18</span>
+	<img alt="Celery Flower interface" class="post-image align-left" src="./images/2018-10-07-celery-flower.jpeg" style="width: 550px;" />
+<p>На картинке изображён интерфейс Celery <a class="reference external" href="https://flower.readthedocs.io/en/latest/">Flower</a>: утилиты для наблюдения за
+деятельностью очереди задач celery.</p>
+<p>Это удобный инструмент, который позволяет оперативно выявить проблемные задачи,
+их статус выполнeния, проверить состояние celery-воркеров, да и просто понять
+в каком состоянии находиться система отложенных задач.</p>
+<p>Данный инструмент очень просто устанавливается и настраивается, а так-же, имеет
+достаточно полную документацию.</p>
+<p>Поэтому, в этой статье я рассмотрю только пример контроля доступа к данному
+веб-интерфейсу с использованием уже имеющейся в проекте системой авторизации.
+В моём случае это django; я хочу дать доступ всем пользователям с флагом
+<cite>is_superuser</cite>.</p>
+<div class="section" id="django-as-reverse-proxy">
+<h2>Django as reverse proxy</h2>
+<p>Для организации внешнего контроля доступа (в библиотеке есть <a class="reference external" href="https://flower.readthedocs.io/en/latest/auth.html">встроенные</a>)
+нам надо организовать то, что называется <a class="reference external" href="https://ru.wikipedia.org/wiki/%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D1%8B%D0%B9_%D0%BF%D1%80%D0%BE%D0%BA%D1%81%D0%B8">reverse-проксированием</a>.</p>
+<p>То есть, веб-сервер который проверил права пользователя, перенаправляет
+запрос другому веб-серверу (в нашем случае celery flower), который
+и отдаёт контент (веб-странички, статику, ajax-запросы).</p>
+<p>Беглый поиск по существующим решениям привёл к библиотеке <a class="reference external" href="https://github.com/mjumbewu/django-proxy">django-proxy</a>, которая,
+в силу своей простоты, уже год как не обновлялась. Однако, она содержит вполне
+рабочий и python3-совместимый код.</p>
+<p>Устанавливаем flower и данную библиотеку. Запускаем flower на произвольном порту localhost</p>
+<div class="highlight"><pre><span></span>~$ pip install flower django-proxy
+~$ celery -A my_project flower --address<span class="o">=</span><span class="m">127</span>.0.0.1 --port<span class="o">=</span><span class="m">8404</span> --url_prefix<span class="o">=</span>celery --persistent<span class="o">=</span>True --db<span class="o">=</span>../flower.db
+</pre></div>
+<p>Как видим, тут использовано совсем не много <a class="reference external" href="https://flower.readthedocs.io/en/latest/config.html">опций конфигурации</a>. Кроме
+адреса и порта я так-же указал:</p>
+<ul>
+<li><p class="first">url_prefix - это адрес внутри нашего сайта, на котором будет жить данный интерфейс</p>
+</li>
+<li><div class="first line-block">
+<div class="line">persistent, db - включают режим сохранения состояния между перезапусками</div>
+<div class="line">расположение файла <cite>*.db</cite> может быть любым</div>
+</div>
+</li>
+</ul>
+<p>Добавляем интерфейс в наш проект</p>
+<div class="highlight"><pre><span></span><span class="c1"># views.py</span>
+<span class="kn">import</span> <span class="nn">proxy.views</span>
+<span class="kn">from</span> <span class="nn">django.contrib.auth.decorators</span> <span class="kn">import</span> <span class="n">user_passes_test</span>
+<span class="c1"># .......</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">user</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">is_superuser</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">flower_proxy</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;http://127.0.0.1:8404/&#39;</span>
+    <span class="k">return</span> <span class="n">proxy</span><span class="o">.</span><span class="n">views</span><span class="o">.</span><span class="n">proxy_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">url</span> <span class="o">+</span> <span class="n">path</span><span class="p">)</span>
+<span class="c1"># .......</span>
+
+<span class="c1"># urls.py</span>
+<span class="kn">from</span> <span class="nn">.views</span> <span class="kn">import</span> <span class="n">flower_proxy</span>
+<span class="c1"># .......</span>
+<span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># .......</span>
+    <span class="n">url</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^celery/(?P&lt;path&gt;.*)&#39;</span><span class="p">,</span> <span class="n">flower_proxy</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;flower&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+<p>Вот и всё.</p>
+<p>Аналогичным образом можно подключить и другие веб-интерфейсы, используемые проектом.</p>
+</div>
+<div class="section" id="id1">
+<h2>Альтернативы</h2>
+<p>Чаще всего в качестве forward-прокси используются высоко-производительные
+сервера, такие как nginx, apache2, и т.д. Поскольку, они позволяют держать достаточно
+много открытых соединений, без существенного влияния на производительность.</p>
+<p>Использование веб-сервера с django как форвард-прокси может быть нежелательным, т.к.
+уменьшает количество свободных worker'ов. А повышение числа воркеров потребляет
+оперативную память, и снижает общую производительность.</p>
+<p>Поэтому, более логичным выглядит решение на основе <a class="reference external" href="https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-subrequest-authentication/">http_auth_request_module</a> для
+nginx и <a class="reference external" href="https://httpd.apache.org/docs/trunk/mod/mod_auth_form.html">mod_auth_form</a> для apache2. Особенно если один из них уже используется для
+предоставления статики проекта или каких-либо других целей.</p>
+<p>Но это, конечно, потребует значительно больших манипуляций чем в описанном варианте.
+Возможно, я опишу этот вариант позже.</p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

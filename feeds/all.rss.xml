@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>mnach</title><link>https://www.mnacharov.ru/</link><description></description><lastBuildDate>Fri, 17 Jan 2020 20:13:05 +0500</lastBuildDate><item><title>Потоковое скачивание больших zip-файлов</title><link>https://www.mnacharov.ru/streaming-large-zipfile-without-storing.html</link><description>&lt;img alt="Zipfile image" class="post-image align-left" src="https://www.mnacharov.ru/images/2020-01-17-zipfile.png" style="width: 520px;" /&gt;
+&lt;p&gt;&lt;strong&gt;Задача:&lt;/strong&gt; отдавать набор файлов с диска одним zip-архивом без потребления памяти&lt;/p&gt;
+&lt;p&gt;Как ни странно, стандартных утилит &lt;cite&gt;python&lt;/cite&gt; и &lt;cite&gt;django&lt;/cite&gt; для этого оказалось недостаточно.
+Если вкрадце - для этого написана отдельная &lt;a class="reference external" href="https://github.com/allanlei/python-zipstream"&gt;либа&lt;/a&gt;, на основе стандартного модуля &lt;cite&gt;zipfile&lt;/cite&gt;,
+которая решает эту проблему. Как-то так:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# views.py&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;pathlib&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Path&lt;/span&gt;
+
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;django.http …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Fri, 17 Jan 2020 20:13:05 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2020-01-17:/streaming-large-zipfile-without-storing.html</guid><category>django</category><category>django</category><category>zipfile</category><category>optimization</category></item><item><title>Django authorization for Celery Flower</title><link>https://www.mnacharov.ru/django-auth-for-celery-flower.html</link><description>&lt;img alt="Celery Flower interface" class="post-image align-left" src="https://www.mnacharov.ru/images/2018-10-07-celery-flower.jpeg" style="width: 550px;" /&gt;
+&lt;p&gt;На картинке изображён интерфейс Celery &lt;a class="reference external" href="https://flower.readthedocs.io/en/latest/"&gt;Flower&lt;/a&gt;: утилиты для наблюдения за
+деятельностью очереди задач celery.&lt;/p&gt;
+&lt;p&gt;Это удобный инструмент, который позволяет оперативно выявить проблемные задачи,
+их статус выполнeния, проверить состояние celery-воркеров, да и просто понять
+в каком состоянии находиться система отложенных задач.&lt;/p&gt;
+&lt;p&gt;Данный инструмент очень просто устанавливается и настраивается, а так-же, имеет …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Sun, 07 Oct 2018 14:17:44 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2018-10-07:/django-auth-for-celery-flower.html</guid><category>django</category><category>django</category><category>auth</category><category>celery</category></item><item><title>Автоматизация обновлений debian</title><link>https://www.mnacharov.ru/automate-debian-updates.html</link><description>&lt;img alt="Automate debian updates" class="post-image align-left" src="https://www.mnacharov.ru/images/2018-08-21-automate-debian-updates.jpeg" style="width: 440px;" /&gt;
+&lt;p&gt;Узнал пару &amp;quot;фишек&amp;quot; администрирования серверов, спешу поделиться.&lt;/p&gt;
+&lt;p&gt;На самом деле, автоматизацией обновления, в стиле Microsoft, мы, конечно, заниматься не будем.
+Иначе, рискуем прийти к схожим результатам: обновили систему в автомате ночью, а там что-то
+не запустилось, и кто-нибудь вынужден остаться без здорового крепкого сна.&lt;/p&gt;
+&lt;p&gt;Вместо этого, мы настроим:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;скачивание пакетов …&lt;/li&gt;&lt;/ul&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Tue, 21 Aug 2018 13:36:11 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2018-08-21:/automate-debian-updates.html</guid><category>devops</category><category>debian</category><category>admin</category><category>apt</category></item><item><title>Локальный почтовый релей средствами postfix</title><link>https://www.mnacharov.ru/local-mailrelay-using-postfix.html</link><description>&lt;img alt="Postfix as mail relay" class="post-image align-left" src="https://www.mnacharov.ru/images/2018-06-03-local-mailrelay-using-postfix.jpeg" style="width: 440px;" /&gt;
+&lt;p&gt;Эх.. Давненько я уже ничего не писал. Сложное это дело писать на естественных языках.
+Толи дело на языках программирования! :-) Жаль что NDA часто не даёт выкладывать
+шедевры на всеобщее обозрение. Иногда чуствуешь себя поэтом продающим свой талант.&lt;/p&gt;
+&lt;p&gt;Ну, довольно лирики! Сегодня хочу поделиться простым решением отказоустойчивой
+отправки почты с использованием …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Sun, 03 Jun 2018 11:36:11 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2018-06-03:/local-mailrelay-using-postfix.html</guid><category>devops</category><category>postfix</category><category>smarthost</category><category>relay</category><category>debian</category><category>docker</category></item><item><title>Метаклассы Python: Django ORM ChoiceField</title><link>https://www.mnacharov.ru/python-metaclass-django-orm-choicefield.html</link><description>&lt;img alt="We need to go deeper" class="post-image align-left" src="https://www.mnacharov.ru/images/2017-11-24-we-need-to-go-deeper.jpeg" style="width: 320px;" /&gt;
+&lt;p&gt;Мне всегда нравился лаконичный декларативный синтаксис объявления моделей реализованный в Django ORM.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Musician&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Model&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;first_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max_length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;last_name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max_length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;instrument&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;models&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;CharField&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;max_length&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Конечно, на первый взгляд это похоже на магию: нам не нужно объявлять метод __init__ чтобы описать поля класса,
+вместо …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Wed, 22 Nov 2017 11:48:44 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2017-11-22:/python-metaclass-django-orm-choicefield.html</guid><category>django</category><category>django</category><category>python</category></item><item><title>Собираем debian-пакет для pyenv (менеджер версий python)</title><link>https://www.mnacharov.ru/build-debian-package-pyenv-python-version-management.html</link><description>&lt;img alt="Террариум Гвидо Мокафико" class="post-image align-left" src="https://www.mnacharov.ru/images/2017-02-11-build-debian-package-pyenv-python-version-management.jpeg" style="width: 320px;" /&gt;
+&lt;p&gt;Прошло уже около года как я открыл для себя менеджер версий python - &lt;a class="reference external" href="https://github.com/yyuu/pyenv"&gt;pyenv&lt;/a&gt;.
+Теперь даже сложно представить как мне не надоедало вручную устанавливать python всякий
+раз когда понадобится новая версия (отличная от распространяемой в репозиториях debian).
+Не говоря уже о том, что действия приходилось повторять, при выкатывании нового проекта
+на …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Sat, 11 Feb 2017 00:46:24 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2017-02-11:/build-debian-package-pyenv-python-version-management.html</guid><category>Devops</category><category>debian</category><category>python</category><category>pyenv</category><category>Makefile</category></item><item><title>Запуск скриптов Django</title><link>https://www.mnacharov.ru/running-django-scripts.html</link><description>&lt;img alt="Давай-ка без django.setup(), бро!" class="post-image align-left" src="https://www.mnacharov.ru/images/2016-08-09-do-it-without-django-setup.ipg.jpeg" style="width: 320px;" /&gt;
+&lt;p&gt;При написании программы на python очень удобно проверять результаты своей работы на
+практике. Все интерпретируемые языки этому способствуют. Так быстрее! Не знаешь как
+работает метод или функция, документация отсутствует, исходный код печалит?
+Ок - пишем скриптик с примерным поведением и смотрим на результат. И прояснилось!..&lt;/p&gt;
+&lt;p&gt;Однако, с django появляются некоторые особенности …&lt;/p&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Tue, 09 Aug 2016 15:09:00 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2016-08-09:/running-django-scripts.html</guid><category>Django</category><category>scripting</category></item><item><title>Начинаем дружить с кешем</title><link>https://www.mnacharov.ru/make-friend-with-the-cache.html</link><description>&lt;div class="section" id="id2"&gt;
+&lt;h2&gt;Или как правильно отдавать статику&lt;/h2&gt;
+&lt;img alt="If you don't clear your cache after an update - YOU GONNA HAVE A BAD TIME" class="post-image align-left" src="https://www.mnacharov.ru/images/2016-07-29-south-park-instructor-clear-cache.png" style="width: 320px;" /&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id3"&gt;
+&lt;h2&gt;О чём это?&lt;/h2&gt;
+&lt;p&gt;Одним из самых значимых, на мой взгляд, плюсов реализации проекта в виде
+веб-приложения является простота обновления рабочей версии. Которая конечно же
+вытекает из клиент-серверной архитектуры. Чтобы что-то исправить вам надо просто
+обновить ваш сервер(а), и при следующей загрузке страницы пользователь увидит …&lt;/p&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Fri, 29 Jul 2016 13:44:00 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2016-07-29:/make-friend-with-the-cache.html</guid><category>Django</category><category>deploy</category><category>staticfiles</category><category>expires</category><category>кеш</category></item><item><title>Fabric автоматизация</title><link>https://www.mnacharov.ru/Fabric-automation.html</link><description>&lt;img alt="fabric deploy web" class="post-image align-left" src="https://www.mnacharov.ru/images/2016-07-15-deploy.png" style="width: 320px;" /&gt;
+&lt;p&gt;Итак, Ваш веб-проект, готовый поразить весь мир своей гениальностью, уже написан?
+Тогда вам надо срочно развернуть его на каком-нибудь бесперебойном сервере, типа VPS,
+а потом продолжить добавлять функционал и фиксить баги...&lt;/p&gt;
+&lt;p&gt;Однако, зайдя в 100 раз по ssh на сервер и выполнив рутинную цепочку команд:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ git pull
+$ ./manage.py migrate …&lt;/pre&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Fri, 15 Jul 2016 15:10:07 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2016-07-15:/Fabric-automation.html</guid><category>Devops</category><category>deploy</category><category>fabric</category></item><item><title>Решаем траблы с ssl в requests</title><link>https://www.mnacharov.ru/solving-issue-with-ssl-in-requests.html</link><description>&lt;p&gt;Довольно необычное поведение обнаружил у python библиотеки
+&lt;a class="reference external" href="http://requests.readthedocs.io/en/master/"&gt;requests&lt;/a&gt;
+при работе с SSL-сертификатами. Если коротко:
+&amp;quot;requests не использует &lt;a class="reference external" href="http://docs.python-requests.org/en/latest/user/advanced/#ca-certificates"&gt;системные сертификаты&lt;/a&gt;&amp;quot;&lt;/p&gt;
+&lt;p&gt;Как можно догадаться это приводит к сообщениям о не безопасном соединении,
+тогда как система уже давно доверенняет данному сертификату.&lt;/p&gt;
+&lt;div class="section" id="id2"&gt;
+&lt;h2&gt;Проявления&lt;/h2&gt;
+&lt;p&gt;Итак, в каких случаях это может быть проблемой?
+Например, Вы поддерживаете …&lt;/p&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Thu, 07 Jul 2016 22:50:24 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2016-07-07:/solving-issue-with-ssl-in-requests.html</guid><category>Python</category><category>requests</category><category>ssl</category></item></channel></rss>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Собираем debian-пакет для pyenv (менеджер версий python)" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./build-debian-package-pyenv-python-version-management.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/devops.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Собираем debian-пакет для pyenv (менеджер версий python)</h1>
+	<span class="post-date">02/11/17</span>
+	<img alt="Террариум Гвидо Мокафико" class="post-image align-left" src="./images/2017-02-11-build-debian-package-pyenv-python-version-management.jpeg" style="width: 320px;" />
+<p>Прошло уже около года как я открыл для себя менеджер версий python - <a class="reference external" href="https://github.com/yyuu/pyenv">pyenv</a>.
+Теперь даже сложно представить как мне не надоедало вручную устанавливать python всякий
+раз когда понадобится новая версия (отличная от распространяемой в репозиториях debian).
+Не говоря уже о том, что действия приходилось повторять, при выкатывании нового проекта
+на сервер. С pyenv установка выполняется в 1 команду:</p>
+<div class="highlight"><pre><span></span>~$ pyenv install <span class="m">3</span>.5.3
+</pre></div>
+<p>Очень не плохо <a class="reference external" href="https://khashtamov.com/2015/12/pyenv-python/">описал работу с pyenv</a> Адиль Хаштамов в своём блоге.</p>
+<p>В этой статье я опишу свой способ установки pyenv на сервер с debian в виде debian-пакета.
+Это может быть интересно тем, у кого в рамках одного сервера работают несоклько проектов.
+А так-же тем, кто хочет научиться собирать пакеты debian. Бытует мнение что это очень сложно..
+Ну, а по моему дак, не на много сложнее чем в arch'е.</p>
+<div class="section" id="pyenv-home">
+<h2>pyenv не в $HOME?</h2>
+<p>Идея поставить pyenv в систему родилась после того как на одной из виртуалок для 5 проектов
+скачивал pyenv в $HOME/.pyenv и ставил python. При этом в трёх из них версия питона была одна
+и та-же (миноры не в счёт, в них совместимость не ломают).</p>
+<p>Расстроившись от такой избыточности, я попробовал поставить /opt/pyenv и для всех пользователей
+прописать PYENV_ROOT. Но, в этом случае, возникают проблемы с правами на файлы
+при выполнении команды <tt class="docutils literal">pyenv rehash</tt> (пересобирает <a class="reference external" href="https://github.com/yyuu/pyenv#understanding-shims">shims</a>). Так что пришлось откатиться..</p>
+<p>Однако, идея поставить на уровень системы меня не покидала, так что я выработал примерный список
+требований и задал вопрос мейнтейнеру на <a class="reference external" href="https://github.com/yyuu/pyenv/issues/820">github</a> 'е.
+Пинок в сторону &quot;Unix's file permissionissues&quot; - &quot;setgid and/or sticky bit&quot; меня вполне удовлетворил.
+А для того чтобы автоматизировать развёртывание и обновление на серверах - выбрал сборку pyenv в
+виде debian-пакета, так как других систем под рукой пока не водится.</p>
+<div class="section" id="id2">
+<h3>Требования</h3>
+<ol class="arabic simple">
+<li>Устанавливать pyenv в директорию системы, например /usr/share/pyenv или /opt/pyenv</li>
+<li>Настроить его так чтобы дать пользователям из группы pyenv права на установку новых python</li>
+<li>Автоматическая инициализация pyenv при добавлении пользователя в соответствующую группу</li>
+<li>Удаление интерпритатора недоступно пока не удалены все виртуальные окружения</li>
+<li>Установка виртуальных окружений в рамках пользователя:
+- в идеале остальные не должны видеть окружения других пользователей
+- как минимум - удалять окружение должен уметь только текущий пользователь</li>
+<li>Зависимости для установки новых python должны ставиться вместе с pyenv</li>
+<li>Сборка пакета debian должна быть автоматизирована - хотя бы тем-же make</li>
+</ol>
+</div>
+</div>
+<div class="section" id="debian-makefile">
+<h2>Собираем debian-пакет с помощью Makefile</h2>
+<p>Для нетерпеливых сразу даю <a class="reference external" href="https://gist.github.com/mnach/9ab2f6381d23ddfe70891f25b5ca888e">ссылку на gist</a> c результатами работы.
+Дальше опишу чуть более подробно, чем в комментариях в Makefile.</p>
+<p>В плане сборки debian-пакета очень полезно почитать с <a class="reference external" href="https://habrahabr.ru/post/78094/">эту статью с хабра</a> от Марка Вартаняна.
+В комментах тоже много дельних советов присутствует</p>
+<p>Всю работу по сборке в Makefile разбил на 4 этапа:</p>
+<ol class="arabic simple">
+<li>Клонирование репозиториев</li>
+<li>Обновление репозиториев</li>
+<li>Сбор данных для пакета из репозиториев</li>
+<li>Сборка пакета на основе полученных данных</li>
+</ol>
+<p>В шапку скинем используемые пути, чтобы было удобно их менять при необходимости</p>
+<div class="highlight"><pre><span></span><span class="c"># Used directories</span>
+<span class="nv">PYENV_SRC</span><span class="o">=</span>pyenv.src
+<span class="nv">PYENV_BUILD</span><span class="o">=</span>pyenv
+<span class="nv">PYENV_TARGET</span><span class="o">=</span><span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/usr/share/pyenv
+<span class="c"># Files wich needs to be removed from debian package</span>
+<span class="nv">NOT_NEEDED_FILES</span><span class="o">=</span>.agignore CHANGELOG.md CONDUCT.md .git .gitignore LICENSE <span class="se">\</span>
+    Makefile src <span class="nb">test</span> .travis.yml .vimrc plugins/.gitignore plugins/*/.git <span class="se">\</span>
+    plugins/*/.gitignore plugins/*/test plugins/*/LICENSE
+<span class="c"># Extract version from control for package name</span>
+<span class="nv">VERSION</span><span class="o">=</span><span class="s2">&quot;`cat </span><span class="k">$(</span>PYENV_BUILD<span class="k">)</span><span class="s2">/DEBIAN/control|grep &#39;Version:&#39;|awk &#39;{print </span><span class="nv">$$</span><span class="s2">2}&#39;`&quot;</span>
+</pre></div>
+<p>Эти переменные вычисляются в момент запуска любого сценария make. Заметьте что
+синтаксис $(VARIABLE) очень похож на синтаксис bash, но shell для вычисления этих
+переменных не вызывается. Первое время это сильно запутывает, - например, для того
+чтобы в Makefile выполнить <tt class="docutils literal">echo $HOME</tt> надо писать <tt class="docutils literal">echo $$HOME</tt>. Тогда make поймёт
+что требуется не его переменная, а символ $ для передачи интерпритатор команд.</p>
+<p>Переменная VERSION просто хранит команду, которая будет выполнена в одном из сценариев.
+С помощью неё мы достанем актуальную версию, для имени пакета.</p>
+<div class="section" id="id4">
+<h3>Клонирование</h3>
+<div class="highlight"><pre><span></span><span class="c"># initial clone - pyenv and relevant plugins</span>
+<span class="nf">pyenv.src</span><span class="o">:</span>
+    curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer<span class="se">\</span>
+        <span class="p">|</span> <span class="nv">PYENV_ROOT</span><span class="o">=</span><span class="k">$(</span>PYENV_SRC<span class="k">)</span> bash
+    git clone https://github.com/jawshooah/pyenv-default-packages <span class="se">\</span>
+        <span class="k">$(</span>PYENV_SRC<span class="k">)</span>/plugins/pyenv-default-packages
+</pre></div>
+<p>Можно вручную склонировать список репозиториев: сам pyenv плюс его плагины.
+Я же чуть сократил число строк с помощью pyenv-install, + добавил плагин
+pyenv-default-packages, чтобы при установке нового python устанавливался virtualenv.
+Плагин pyenv-virtualenv может устанавливать его сам, но мы поставим его сразу, чтобы
+под другим пользователем не столкнутся с ошибкой контроля доступа.</p>
+<p>Задача названа также, как и директория в которую клонируется pyenv. Таким образом,
+она не будет выполняться повторно. Makefile крут, не так ли? =)</p>
+</div>
+<div class="section" id="id5">
+<h3>Обновление</h3>
+<p>Скажем спасибо плагину pyenv-update, выполнив задачу в 1 команду</p>
+<div class="highlight"><pre><span></span><span class="c"># pyenv-update do all work for us</span>
+<span class="nf">update</span><span class="o">:</span>
+    <span class="nv">PYENV_ROOT</span><span class="o">=</span><span class="k">$(</span>PYENV_SRC<span class="k">)</span> <span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span>PYENV_SRC<span class="k">)</span><span class="s2">/bin:</span><span class="k">$(</span>PATH<span class="k">)</span><span class="s2">&quot;</span> pyenv update
+</pre></div>
+</div>
+<div class="section" id="id6">
+<h3>Конфиругирование</h3>
+<p>Задача сбора данных для пакета зависит от предыдущих двух, чтобы её выполнить
+сначала выполняются эти две.</p>
+<div class="highlight"><pre><span></span><span class="c"># configure build dir</span>
+<span class="nf">pyenv</span><span class="o">:</span> <span class="n">pyenv</span>.<span class="n">src</span> <span class="n">update</span>
+    rm -Rf <span class="k">$(</span>PYENV_BUILD<span class="k">)</span><span class="p">;</span>
+    <span class="sb">`</span><span class="c1"># move pyenv directory to PYENV_TARGET`</span>
+    mkdir -p <span class="sb">`</span>dirname <span class="k">$(</span>PYENV_TARGET<span class="k">)</span><span class="sb">`</span>
+    cp -R pyenv.src <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>
+    <span class="nb">cd</span> <span class="k">$(</span>PYENV_TARGET<span class="k">)</span> <span class="o">&amp;&amp;</span> rm -Rf <span class="k">$(</span>NOT_NEEDED_FILES<span class="k">)</span>
+</pre></div>
+<p>Сначала всё просто - копируем pyenv в нужную директорию, а затем удаляем все
+ненужные файлы.</p>
+<div class="highlight"><pre><span></span><span class="nf">pyenv</span><span class="o">:</span>
+    <span class="sb">`</span><span class="c1"># users from pyenv group can write to those directories`</span>
+    mkdir -p -m <span class="m">775</span> <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>/cache
+    mkdir -p -m <span class="m">775</span> <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>/shims
+    mkdir -p -m <span class="m">775</span> <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>/versions
+</pre></div>
+<p>Разрешаем писать в эти директории всем из группы pyenv.</p>
+<div class="highlight"><pre><span></span><span class="nf">pyenv</span><span class="o">:</span>
+    <span class="sb">`</span><span class="c1"># install virtualenv for all new pythons`</span>
+    <span class="nb">echo</span> <span class="s2">&quot;virtualenv&quot;</span> &gt; <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>/default-packages
+    <span class="sb">`</span><span class="c1"># all pythons must have envs for virutual environments`</span>
+    cp mkdir-envs.bash <span class="k">$(</span>PYENV_TARGET<span class="k">)</span>/plugins/pyenv-default-packages/etc/pyenv.d/install/
+</pre></div>
+<p>Выставляем дефолтные приложения и добавляем сценарий добавляющий директорию envs с
+нужными правами (чтобы пользователи группы pyenv могли ставить виртуальные окружения)</p>
+<div class="highlight"><pre><span></span><span class="nf">pyenv</span><span class="o">:</span>
+    <span class="sb">`</span><span class="c1"># copy profile.d and doc directory in usr`</span>
+    mkdir -p <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/etc/profile.d
+    cp pyenv.sh <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/etc/profile.d
+    mkdir -p <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/usr/share/doc/pyenv
+    cp copyright <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/usr/share/doc/pyenv
+    gzip --best -k -c changelog.Debian &gt; <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/usr/share/doc/pyenv/changelog.Debian.gz
+    <span class="sb">`</span><span class="c1"># package information`</span>
+    mkdir <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/DEBIAN
+    <span class="k">for</span> file in conffiles control postinst postrm preinst<span class="p">;</span> <span class="k">do</span> <span class="se">\</span>
+        cp <span class="nv">$$</span>file <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>/DEBIAN<span class="p">;</span> <span class="se">\</span>
+    <span class="k">done</span>
+</pre></div>
+<p>Копируем pyenv.sh в profile.d - это стандартный код инициализации pyenv за
+исключением проверки на принадлежность пользователя группе pyenv:
+<tt class="docutils literal">groups | grep <span class="pre">&amp;&gt;/dev/null</span> '\bpyenv\b'</tt></p>
+<p>Копируем неотъемлимые части пакета - copyright, changelog, а также файлы
+в директорию DEBIAN. В них самое интересное! Вот самое главное в postinst,
+он выполняется сразу после установки:</p>
+<div class="highlight"><pre><span></span>chown root:pyenv -R /usr/share/pyenv
+chmod g+s /usr/share/pyenv/versions
+chmod +t /usr/share/pyenv/versions
+</pre></div>
+<p>Во второй строчке ставим SGID на директорию, для того чтобы все новые файлы
+и папки создавались под группой pyenv. Это не обязательно, но я подумал что так
+будет логичней. А в третьей - стики бит, если его выставить, то только владелец
+файла сможет его удалить. Стики бит также будем ставить для папок envs в скрипте
+mkdir-envs.bash</p>
+</div>
+<div class="section" id="id7">
+<h3>Сборка</h3>
+<p>Ну тут всё просто - собираем пакет с помощью dpkg-deb, fakeroot нужен чтобы
+выставлять права файлов как root:root. Для полученного пакета выставляем версию
+через команду из переменной VERSION. Кто-то ведь её ещё помнит?</p>
+<div class="highlight"><pre><span></span><span class="nf">build</span><span class="o">:</span> <span class="n">pyenv</span>
+    fakeroot dpkg-deb --build <span class="k">$(</span>PYENV_BUILD<span class="k">)</span>
+    mkdir -p dists
+    mv -v pyenv.deb dists/pyenv_<span class="k">$(</span>VERSION<span class="k">)</span>_all.deb
+</pre></div>
+<p>Готовый пакет можно проверить утилитой - lintian. Она проверяет правильно ли
+собран пакет.</p>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>Заключение</h2>
+<p>Чтож.. В результате мы получили средство автоматической сборки pyenv,
+который ставится на уровень системы. Обновить pyenv на серверах или поставить
+на новый теперь будет чуть легче.</p>
+<p>К сожалению, пока я не понял как реализовать четвёртный пункт Требований.
+Пятый пункт тоже реализован не полностью. Но чтобы их реализовать надо вмешиваться
+в исходный код проекта, чего я сознательно не хотел делать. Рано.. на сейчас
+мне и так хватит.</p>
+<p>Спасибо что дочитали до конца. Надеюсь было не слишком занудно?.. :-)</p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

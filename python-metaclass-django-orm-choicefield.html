@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Метаклассы Python: Django ORM ChoiceField" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./python-metaclass-django-orm-choicefield.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/django.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Метаклассы Python: Django ORM ChoiceField</h1>
+	<span class="post-date">11/22/17</span>
+	<img alt="We need to go deeper" class="post-image align-left" src="./images/2017-11-24-we-need-to-go-deeper.jpeg" style="width: 320px;" />
+<p>Мне всегда нравился лаконичный декларативный синтаксис объявления моделей реализованный в Django ORM.</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Musician</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">instrument</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+<p>Конечно, на первый взгляд это похоже на магию: нам не нужно объявлять метод __init__ чтобы описать поля класса,
+вместо этого мы описываем поля базы данных на уровне класса.</p>
+<p>Такой синтаксис возможен благодоря <em>мета-классам</em>: классам которые создают классы. Базовый мета-класс <cite>type</cite> -
+используется при создании класса с помощью спец-слова <cite>class</cite>. В блоге веб-студии jetfix написали довольно развёрнутое
+<a class="reference external" href="http://blog.jetfix.ru/post/metaklassy-razrushenie-mifov">введение в метаклассы</a>. Ну а я рассмотрю пример их практического применения для атрибута choices в models.CharField
+и forms.ChoiceField.</p>
+<div class="section" id="id2">
+<h2>Цель</h2>
+<p>Упростить описание полей ORM с ограниченным выбором:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Employee</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">FEMALE</span> <span class="o">=</span> <span class="s1">&#39;F&#39;</span>
+    <span class="n">MALE</span> <span class="o">=</span> <span class="s1">&#39;M&#39;</span>
+    <span class="n">gender</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s1">&#39;Пол&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">((</span><span class="n">FEMALE</span><span class="p">,</span> <span class="s1">&#39;Женский&#39;</span><span class="p">),</span> <span class="p">(</span><span class="n">MALE</span><span class="p">,</span> <span class="s1">&#39;Мужской&#39;</span><span class="p">)))</span>
+</pre></div>
+<p>Думаю всем хорошо известна данная конструкция, и думаю многих напрягает когда в одной модели сходятся два таких поля,
+или одно из полей имеет достаточно большой набор значений. Объявлять их на уровне модели не так удобно, в итоге
+объявляем в отдельном классе:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Finger</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">THUMB</span> <span class="o">=</span> <span class="s1">&#39;T&#39;</span>
+    <span class="n">POINTER</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+    <span class="n">MIDDLE</span> <span class="o">=</span> <span class="s1">&#39;M&#39;</span>
+    <span class="n">RING</span> <span class="o">=</span> <span class="s1">&#39;R&#39;</span>
+    <span class="n">LITTLE</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
+    <span class="n">choices</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">THUMB</span><span class="p">,</span> <span class="s1">&#39;Большой&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">POINTER</span><span class="p">,</span> <span class="s1">&#39;Указательный&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">MIDDLE</span><span class="p">,</span> <span class="s1">&#39;Средний&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">RING</span><span class="p">,</span> <span class="s1">&#39;Безымянный&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">LITTLE</span><span class="p">,</span> <span class="s1">&#39;Мизинец&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">RingMaterial</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">GOLD</span> <span class="o">=</span> <span class="s1">&#39;G&#39;</span>
+    <span class="n">SILVER</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
+    <span class="n">choices</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">GOLD</span><span class="p">,</span> <span class="s1">&#39;Золото&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="n">SILVER</span><span class="p">,</span> <span class="s1">&#39;Серебро&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MyRing</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">finger</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s1">&#39;Палец&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">Finger</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="s1">&#39;Толщина&#39;</span><span class="p">)</span>
+    <span class="n">material</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s1">&#39;Материал&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">RingMaterial</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+</pre></div>
+<p>Хотя данный способ уже достаточно удобный, он обладает некоторой избыточностью:</p>
+<ul class="simple">
+<li>Для объявления одного типа мы должны написать имя константы дважды: при инициализации и при добавлении в choices</li>
+<li>Обязательный атрибут max_length не информативен - никак не отражает связь с длиной возможных значений</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>Решение</h2>
+<p>Приведу сразу пример того, как будет в итоге:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Finger</span><span class="p">(</span><span class="n">Choices</span><span class="p">):</span>
+    <span class="n">THUMB</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;Большой&#39;</span><span class="p">)</span>
+    <span class="n">POINTER</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Указательный&#39;</span><span class="p">)</span>
+    <span class="n">MIDDLE</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;Средний&#39;</span><span class="p">)</span>
+    <span class="n">RING</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">,</span> <span class="s1">&#39;Безымянный&#39;</span><span class="p">)</span>
+    <span class="n">LITTLE</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="s1">&#39;Мизинец&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">RingMaterial</span><span class="p">(</span><span class="n">Choices</span><span class="p">):</span>
+    <span class="n">GOLD</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;Золото&#39;</span><span class="p">)</span>
+    <span class="n">SILVER</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Серебро&#39;</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">MyRing</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">finger</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s1">&#39;Палец&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">Finger</span><span class="p">),</span> <span class="n">choices</span><span class="o">=</span><span class="n">Finger</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="s1">&#39;Толщина&#39;</span><span class="p">)</span>
+    <span class="n">material</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="s1">&#39;Материал&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">RingMaterial</span><span class="p">),</span> <span class="n">choices</span><span class="o">=</span><span class="n">RingMaterial</span><span class="p">)</span>
+</pre></div>
+<p>Ну вот, так гораздо локаничней!</p>
+<p>А вот и реализация класса Choices, предоставляющего нам эту &quot;магию&quot;:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ChoicesMetaclass</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="n">field_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;^[A-Z][^a-z]*$&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="n">choices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">field_re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">choice</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="n">dct</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">choice</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">choice</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="n">value</span><span class="p">,</span> <span class="n">field</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">choices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">choice</span><span class="p">,</span> <span class="n">message</span><span class="p">))</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;choices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">ChoicesMetaclass</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">choices</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+<span class="k">class</span> <span class="nc">Choices</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ChoicesMetaclass</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Базовый класс для описания атрибута choices в forms.ChoiceField и models.CharField&quot;&quot;&quot;</span>
+</pre></div>
+<p>Итак, главное что делает этот метакласс определено в методе __new__: сбор статических переменных класса
+объявленных без букв нижнего регистра и инициализированных строкой или кортежем с двумя значениями в переменную choices.</p>
+<p>Таким образом у нас 2 варианта инициализации одного из choices:</p>
+<blockquote>
+<ol class="arabic simple">
+<li><cite>MIDDLE = 'M'</cite> тогда в choices подставится <cite>('M', 'MIDDLE')</cite></li>
+<li>через кортеж <cite>MIDDLE = ('M', 'Средний')</cite>, значение которого перекочует в choices как есть, а в него
+подставится только значение - <cite>MIDDLE = 'M'</cite>.</li>
+</ol>
+</blockquote>
+<p>Дополнительно, мы определили два &quot;магических&quot; метода:</p>
+<div class="line-block">
+<div class="line"><cite>__iter__</cite> - позволяет нам использовать класс как итератор, и избавляет от необходимости обращатся к choices вручную.</div>
+<div class="line">Писать <cite>choices=Finger.choices</cite> слишком сложно, это же петон :)</div>
+</div>
+<p><cite>__len__</cite> - вызывается встроеным оператором <cite>len</cite>, и избавляет от необходимости считать размер для CharField</p>
+</div>
+<div class="section" id="id4">
+<h2>Выводы</h2>
+<p>Метаклассы существенно расширяют возможности наследования: они позволяют переопределить логику создания новых классов.
+Используя данный инструмент, можно упростить некоторые конструкции в ваших программах.</p>
+<p>Но, как говориться &quot;The greater the force, the greater the responsibility&quot;, не дайте себе всё испортить!</p>
+<p>Пока! Наслаждайтесь кодом!</p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

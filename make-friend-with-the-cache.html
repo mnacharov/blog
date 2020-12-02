@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Начинаем дружить с кешем" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./make-friend-with-the-cache.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/django.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Начинаем дружить с кешем</h1>
+	<span class="post-date">07/29/16</span>
+	<div class="section" id="id2">
+<h2>Или как правильно отдавать статику</h2>
+<img alt="If you don't clear your cache after an update - YOU GONNA HAVE A BAD TIME" class="post-image align-left" src="./images/2016-07-29-south-park-instructor-clear-cache.png" style="width: 320px;" />
+</div>
+<div class="section" id="id3">
+<h2>О чём это?</h2>
+<p>Одним из самых значимых, на мой взгляд, плюсов реализации проекта в виде
+веб-приложения является простота обновления рабочей версии. Которая конечно же
+вытекает из клиент-серверной архитектуры. Чтобы что-то исправить вам надо просто
+обновить ваш сервер(а), и при следующей загрузке страницы пользователь увидит новую
+версию сайта.</p>
+<p>Однако, иногда в этот процесс вмешивается кеш браузера клиента. И, если  не подчинить
+себе этот инструмент, то он станет вашим врагом! Давайте разберёмся, что нужно
+сделать чтобы взять его в союзники..</p>
+<div class="section" id="id4">
+<h3>Мат. часть</h3>
+<p>Под статичными файлами я, конечно-же, имею ввиду картинки, скрипты, шрифты, таблицы
+стилей и т.д.. Это содержимое сайта, которое не меняется в пределах одной версии
+проекта. В отличии от, например, html-страниц которые обычно создаются при
+каждом запросе клиента или от AJAX-запросов.</p>
+<p>Сохранением данных в браузере клиента управляет HTTP-заголовок сервера Expires. В нём указывается время после которого
+данные необходимо считать устаревшими. Например</p>
+<blockquote>
+Expires: Thu, 15 Sep 2016 13:10:01 GMT</blockquote>
+<p>Недействительно после 15 сентября 2016 года 13 часов 10 минут и одной секунды.
+При настройке сервера это указывается в конфиге сервера как</p>
+<p>Apache2</p>
+<blockquote>
+ExpiresDefault &quot;access plus 10 days&quot;</blockquote>
+<p>Nginx</p>
+<blockquote>
+expires 10d;</blockquote>
+<p>Только не спешите уменьшать это значение до предела, если Ваши клиенты начнут
+жаловаться, что новые возможности не появляются на вашем сайте! Давайте сначала
+разберёмся..</p>
+</div>
+<div class="section" id="id5">
+<h3>Почему кеш наш друг?</h3>
+<ol class="arabic">
+<li><div class="first line-block">
+<div class="line">Ускорение загрузки сайта</div>
+<div class="line">Клиент не будет ждать получения статичных данных при загрузке второй и последующих страниц,
+они уже будут в его браузере</div>
+</div>
+</li>
+<li><div class="first line-block">
+<div class="line">Уменьшение трафика на клиенте</div>
+<div class="line">Опять же, клиент меньше потратит трафика чтобы загрузить сайт. А это очень актуально для мобильных платформ!</div>
+</div>
+</li>
+<li><div class="first line-block">
+<div class="line">Уменьшение нагрузки на сервер</div>
+<div class="line">Сервер меньше занимается чтением файлов, и больше полезной нагрузкой. Ну а если проект в облаке то это
+уменьшает и стоимость аренды мощностей.</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="id6">
+<h3>Что идёт не так?</h3>
+<p>По сути, чтобы пользоваться кешем надо уметь сказать браузеру о том что версия файла изменилась. К примеру запись:</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/static/style.css&quot;</span><span class="p">&gt;</span>
+</pre></div>
+<p>Надо модифицировать через GET-параметр</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/static/style.css?v=1.15&quot;</span><span class="p">&gt;</span>
+</pre></div>
+<p>Либо сохранить версию в имени или пути файла</p>
+<div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">link</span> <span class="na">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/static/style.1.15.css&quot;</span><span class="p">&gt;</span>
+</pre></div>
+<p>Иначе клиенты будут считать что файл не изменился, и будут брать файл из кеша пока
+не превышен <tt class="docutils literal">Expires</tt>. Вот, например, что пишет про это Yahoo
+<a class="reference external" href="https://developer.yahoo.com/performance/rules.html#expires">в хорошей статье</a>
+про оптимизацию веб-приложений</p>
+</div>
+</div>
+<div class="section" id="id8">
+<h2>Решение</h2>
+<p>В общем-то сделать всё можно по-разному. Тут я рассмотрю встроенное в Django
+решение, которое я, почему-то, очень долго не видел в этом фреймворке.</p>
+<p>Решение очень хорошо описано <a class="reference external" href="https://docs.djangoproject.com/en/1.9/howto/static-files/deployment/">в документации</a> и состоит в использовании приложения
+<a class="reference external" href="https://docs.djangoproject.com/en/1.9/ref/contrib/staticfiles/">staticfiles</a>  для выставления ссылок в темплейтах, и дополнительной настройки
+<tt class="docutils literal">STATICFILES_STORAGE</tt> в <tt class="docutils literal">ManifestStaticFilesStorage</tt> или в <tt class="docutils literal">CachedStaticFilesStorage</tt>:</p>
+<div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="n">STATICFILES_STORAGE</span> <span class="o">=</span> <span class="s1">&#39;django.contrib.staticfiles.storage.ManifestStaticFilesStorage&#39;</span>
+<span class="c1"># если серверный кеш настроен</span>
+<span class="n">STATICFILES_STORAGE</span> <span class="o">=</span> <span class="s1">&#39;django.contrib.staticfiles.storage.CachedStaticFilesStorage&#39;</span>
+</pre></div>
+<div class="section" id="id10">
+<h3>Как работает</h3>
+<p>При запуске <tt class="docutils literal">./manage.py collectstatic</tt> ко всем статичным файлам добавится дополнительный суффикс
+вычисляемый динамически (md5 по контенту).</p>
+<p>Дополнительно, создаётся файл манифеста staticfiles.json (запись в серверном кеше
+для <tt class="docutils literal">CachedStaticFilesStorage</tt>), который содержит словарь соответствий оригинально
+имени файла к его весифицированной копии:</p>
+<div class="highlight"><pre><span></span><span class="s2">&quot;/img/logo_new.png&quot;</span><span class="o">:</span> <span class="s2">&quot;/img/logo_new.02d565a9c2db.png&quot;</span>
+</pre></div>
+<p>При создании html-страницы, если DEBUG=False, в темплейте происходит выставление
+имён на основе staticfiles.json. Таким образом, в момент генерации страницы сложная
+операция по вычислению хеша файлов не выполняется.</p>
+</div>
+</div>
+<div class="section" id="id11">
+<h2>В продакшн!</h2>
+<p>Вот в общем-то и всё. Хочется ещё раз подчеркнуть, что решение работает &quot;из коробки&quot;!
+В лучшем случае, вам придётся заменить в темплейтах <tt class="docutils literal">{% load static %}</tt> на <tt class="docutils literal">{% load staticfiles %}</tt>.
+В худшем - убрать устаревшее <tt class="docutils literal">{{ STATIC_URL }}</tt>
+или и вовсе не правильноe прямое указание пути <cite>href=&quot;/static/my_file.css&quot;</cite>,
+хотя это так и так лучше бы сделать..</p>
+<p><strong>Спасибо за внимание</strong></p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

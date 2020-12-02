@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>mnach - Python</title><link>https://www.mnacharov.ru/</link><description></description><lastBuildDate>Thu, 07 Jul 2016 22:50:24 +0500</lastBuildDate><item><title>Решаем траблы с ssl в requests</title><link>https://www.mnacharov.ru/solving-issue-with-ssl-in-requests.html</link><description>&lt;p&gt;Довольно необычное поведение обнаружил у python библиотеки
+&lt;a class="reference external" href="http://requests.readthedocs.io/en/master/"&gt;requests&lt;/a&gt;
+при работе с SSL-сертификатами. Если коротко:
+&amp;quot;requests не использует &lt;a class="reference external" href="http://docs.python-requests.org/en/latest/user/advanced/#ca-certificates"&gt;системные сертификаты&lt;/a&gt;&amp;quot;&lt;/p&gt;
+&lt;p&gt;Как можно догадаться это приводит к сообщениям о не безопасном соединении,
+тогда как система уже давно доверенняет данному сертификату.&lt;/p&gt;
+&lt;div class="section" id="id2"&gt;
+&lt;h2&gt;Проявления&lt;/h2&gt;
+&lt;p&gt;Итак, в каких случаях это может быть проблемой?
+Например, Вы поддерживаете …&lt;/p&gt;&lt;/div&gt;</description><dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Начаров Михаил</dc:creator><pubDate>Thu, 07 Jul 2016 22:50:24 +0500</pubDate><guid isPermaLink="false">tag:www.mnacharov.ru,2016-07-07:/solving-issue-with-ssl-in-requests.html</guid><category>Python</category><category>requests</category><category>ssl</category></item></channel></rss>

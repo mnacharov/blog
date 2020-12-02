@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Запуск скриптов Django" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./running-django-scripts.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/django.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Запуск скриптов Django</h1>
+	<span class="post-date">08/09/16</span>
+	<img alt="Давай-ка без django.setup(), бро!" class="post-image align-left" src="./images/2016-08-09-do-it-without-django-setup.ipg.jpeg" style="width: 320px;" />
+<p>При написании программы на python очень удобно проверять результаты своей работы на
+практике. Все интерпретируемые языки этому способствуют. Так быстрее! Не знаешь как
+работает метод или функция, документация отсутствует, исходный код печалит?
+Ок - пишем скриптик с примерным поведением и смотрим на результат. И прояснилось!..</p>
+<p>Однако, с django появляются некоторые особенности, которые я рассмотрю в этой статье</p>
+<div class="section" id="id1">
+<h2>Особенности</h2>
+<div class="section" id="id2">
+<h3>Пути к модулям</h3>
+<p>Любой проект на django содержит как минимум 2 модуля python</p>
+<ul class="simple">
+<li>модуль настроек проекта - <tt class="docutils literal">settings</tt>, <tt class="docutils literal">urls</tt>, <tt class="docutils literal">wsgi</tt></li>
+<li>модуль вашего приложения с представлениями, шаблонами, статикой и прочим</li>
+</ul>
+<p>Если вы положите ваш скрипт в корень проекта, то, скорее всего, проблем не возникнет.
+Однако, в больших проектах, так делать не очень удобно, тем более хранить такие
+скрипты там в дальнейшем (для демонстрации работы непонятной функции например)</p>
+<p>А если положите в какой-нибудь модуль, то изменятся пути к остальным скриптам проекта
+и импорты не будут работать:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">my_app</span> <span class="kn">import</span> <span class="n">views</span>  <span class="c1"># не работает т.к. my_app не в PYTHONPATH</span>
+</pre></div>
+<p>Чтобы исправить надо прописывать корневую директорию проекта в системную переменную <tt class="docutils literal">PYTHONPATH</tt>
+или вызывать скрипты всегда из этой директории</p>
+</div>
+<div class="section" id="settings-django-orm">
+<h3>Settings и Django ORM</h3>
+<p>Правильно загружать файл настроек Django надо с помощью</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.conf</span> <span class="kn">import</span> <span class="n">settings</span>
+</pre></div>
+<p>Однако, чтобы воспользоваться этим вам надо</p>
+<ul class="simple">
+<li>задать переменную DJANGO_SETTINGS_MODULE</li>
+<li>выполнить django.setup() до импорта settings</li>
+</ul>
+<p>C ORM ситуация такая же, если выполните import ваших моделей, до того как выполните
+<tt class="docutils literal">django.setup()</tt>, ORM будет не рабочей.</p>
+<p>Вот и появляются весьма странные конструкции</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+    <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">)))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DJANGO_SETTINGS_MODULE&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;project.settings&quot;</span>
+    <span class="kn">import</span> <span class="nn">django</span>
+    <span class="n">django</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+</pre></div>
+<p>в самом верху скрипта, где по pythonic-way ничего кроме <tt class="docutils literal">import</tt> быть не должно!</p>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>Как правильно</h2>
+<p>В Django есть возможность написания своих собственных команд для скрипта manage.py,
+который лежит в корне и предназначен для управления вашим проектом.
+Давайте, руководствуясь <a class="reference external" href="https://docs.djangoproject.com/en/1.8/howto/custom-management-commands/">документацией</a>,
+напишем команду exec, которая будет выполнять произвольный скрипт в нашем проекте.</p>
+<div class="section" id="id5">
+<h3>Простой запуск</h3>
+<p>Создаём в любом приложении django пакет management, а в нём пакет commands.
+В последнем пакете создаём exec.py и помещаем туда следующий код</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.core.management</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
+<span class="kn">from</span> <span class="nn">django.utils.module_loading</span> <span class="kn">import</span> <span class="n">import_string</span>
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Выполнить функцию в скрипте проекта&#39;</span>
+
+    <span class="k">def</span> <span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="n">import_string</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">function</span><span class="p">()</span>
+</pre></div>
+<p>Всё довольно просто, API django для написания команд полагается на модуль <tt class="docutils literal">argparse</tt>.
+В функции <tt class="docutils literal">add_arguments</tt> мы задаём аргументы для запуска команды, а в <tt class="docutils literal">handle</tt>
+определяем действия которые мы выполним после того как пользователь передаст
+корректные параметры. Теперь если мы хотим в модуле, к примеру:
+<tt class="docutils literal">my_app.examples.simple</tt> выполнить функцию run пишем:</p>
+<div class="highlight"><pre><span></span>$ ./manage.py <span class="nb">exec</span> my_app.examples.simple.run
+</pre></div>
+</div>
+<div class="section" id="id6">
+<h3>Запуск функции с аргументами</h3>
+<p>Можно усложнить задачу и сделать возможным запуск функции с параметрами.
+Благодаря тому что python язык интерпретируемый, мы можем легко узнать какие
+параметры нам требуются. А аннотации типов в python3 помогут нам привести типы
+из строковых в числовые и булевы.
+Вот что у меня получилось:</p>
+<table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37</pre></div></td><td class="code"><div class="highlight"><pre><span></span> <span class="kn">import</span> <span class="nn">inspect</span>
+ <span class="kn">import</span> <span class="nn">celery.app.task</span>
+ <span class="kn">import</span> <span class="nn">decimal</span>
+ <span class="kn">from</span> <span class="nn">django.core.management</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
+ <span class="kn">from</span> <span class="nn">django.utils.module_loading</span> <span class="kn">import</span> <span class="n">import_string</span>
+
+
+ <span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+     <span class="n">help</span> <span class="o">=</span> <span class="s1">&#39;Выполнить функцию в скрипте проекта&#39;</span>
+
+     <span class="k">def</span> <span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+         <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+         <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;args&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+         <span class="n">function</span> <span class="o">=</span> <span class="n">import_string</span><span class="p">(</span><span class="n">opts</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">])</span>
+         <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">function</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">celery</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">TaskType</span><span class="p">):</span>
+                 <span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="o">.</span><span class="n">run</span>
+             <span class="k">else</span><span class="p">:</span>
+                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Wrong function! </span><span class="si">{0!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">function</span><span class="p">))</span>
+         <span class="n">fullArgSpec</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfullargspec</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fullArgSpec</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">fullArgSpec</span><span class="o">.</span><span class="n">defaults</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">+</span>
+                         <span class="nb">len</span><span class="p">(</span><span class="n">fullArgSpec</span><span class="o">.</span><span class="n">kwonlyargs</span> <span class="ow">or</span> <span class="p">())</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">fullArgSpec</span><span class="o">.</span><span class="n">kwonlydefaults</span> <span class="ow">or</span> <span class="p">())):</span>
+             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Not enough arguments for function </span><span class="si">{function}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">opts</span><span class="p">))</span>
+
+         <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">kwarg_key</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kwarg_key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fullArgSpec</span><span class="o">.</span><span class="n">args</span> <span class="o">+</span> <span class="n">fullArgSpec</span><span class="o">.</span><span class="n">kwonlyargs</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+         <span class="k">if</span> <span class="n">fullArgSpec</span><span class="o">.</span><span class="n">annotations</span><span class="p">:</span>
+             <span class="k">for</span> <span class="n">kwarg</span><span class="p">,</span> <span class="n">annotation</span> <span class="ow">in</span> <span class="n">fullArgSpec</span><span class="o">.</span><span class="n">annotations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                 <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">annotation</span> <span class="ow">is</span> <span class="n">cs</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">complex</span><span class="p">,</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">)):</span>
+                     <span class="c1"># Эти типы можно создать передав в конструктор str</span>
+                     <span class="n">kwargs</span><span class="p">[</span><span class="n">kwarg</span><span class="p">]</span> <span class="o">=</span> <span class="n">annotation</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">kwarg</span><span class="p">])</span>
+                 <span class="k">elif</span> <span class="n">annotation</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
+             <span class="c1"># Булевый тип переводим - &#39;False&#39;=&gt;False, &#39;True&#39;=&gt;True, остальное =&gt; None</span>
+                     <span class="n">kwargs</span><span class="p">[</span><span class="n">kwarg</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;False&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">kwarg</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</td></tr></table><p>Как видно из примера, я также предусмотрел возможность запуска функций заключённых в
+декоратор <tt class="docutils literal">&#64;celery.task</tt>, это специфика конкретного проекта. Способы приведения
+типов также могут быть различны, всё зависит только от Вас.</p>
+<p><strong>Успехов!</strong></p>
+</div>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

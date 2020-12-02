@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Потоковое скачивание больших zip-файлов" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./streaming-large-zipfile-without-storing.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/django.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Потоковое скачивание больших zip-файлов</h1>
+	<span class="post-date">01/17/20</span>
+	<img alt="Zipfile image" class="post-image align-left" src="./images/2020-01-17-zipfile.png" style="width: 520px;" />
+<p><strong>Задача:</strong> отдавать набор файлов с диска одним zip-архивом без потребления памяти</p>
+<p>Как ни странно, стандартных утилит <cite>python</cite> и <cite>django</cite> для этого оказалось недостаточно.
+Если вкрадце - для этого написана отдельная <a class="reference external" href="https://github.com/allanlei/python-zipstream">либа</a>, на основе стандартного модуля <cite>zipfile</cite>,
+которая решает эту проблему. Как-то так:</p>
+<div class="highlight"><pre><span></span><span class="c1"># views.py</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">django.http</span> <span class="kn">import</span> <span class="n">StreamingHttpResponse</span>
+<span class="kn">from</span> <span class="nn">zipstream</span> <span class="kn">import</span> <span class="n">ZipFile</span><span class="p">,</span> <span class="n">ZIP_DEFLATED</span>
+
+
+<span class="k">def</span> <span class="nf">some_streaming_zipfile_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A view that streams a large zip-file.&quot;&quot;&quot;</span>
+    <span class="n">zip_stream</span> <span class="o">=</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;**/*&#39;</span><span class="p">):</span>
+        <span class="n">zip_stream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">StreamingHttpResponse</span><span class="p">(</span><span class="n">zip_stream</span><span class="p">,</span> <span class="n">content_type</span><span class="o">=</span><span class="s2">&quot;application/zip&quot;</span><span class="p">)</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;Content-Disposition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;attachment; filename=&quot;home.zip&quot;&#39;</span>
+    <span class="k">return</span> <span class="n">response</span>
+</pre></div>
+<p>Первые три строки функции <cite>some_streaming_zipfile_view</cite>, сохраняют имена всех файлов из домашней
+директории пользователя. А процедура сжатия начинается уже после выхода из функции:
+когда <cite>StreamingHttpResponse</cite> начинает передавать HTTP-body пользователю итерируя <cite>zip_stream</cite>.</p>
+<p>Так-же есть <a class="reference external" href="https://pypi.org/project/zipstream-new/">форк</a> этой либы, который решает некоторые баги.</p>
+<div class="section" id="id1">
+<h2>Но, зачем?</h2>
+<p>Решаем две проблемы:</p>
+<ul>
+<li><p class="first">Не потребляем дополнительного места на диске и в оперативной памяти</p>
+</li>
+<li><div class="first line-block">
+<div class="line">Не ждём сжатия, а начинаем отдавать zip-файл сразу.</div>
+<div class="line">Избегаем разрывов по таймауту в продакшене на nginx.</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>Алтернативы</h2>
+<p>Если в качестве реверс-проки выбран <cite>nginx</cite>, можно воспользоваться его модуем <cite>mod_zip</cite> и <a class="reference external" href="https://github.com/travcunn/django-zip-stream">django_zip_stream</a>.</p>
+<p>К сожалению, больше ничего путного я не нашёл. В том, числе для аналогичной работы c <cite>tarfile</cite>.</p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>

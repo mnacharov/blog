@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru_ru" prefix="og: http://ogp.me/ns#">
+	<head>
+		<link href="http://gmpg.org/xfn/11" rel="profile">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+		<!-- Metadata -->
+	<meta name="description" content="">
+	<meta property="og:description" content="">
+	<meta property="og:title" content="Fabric автоматизация" />
+	<meta property="og:type" content="article" />
+	<meta property="og:url" content="./Fabric-automation.html" />
+		<meta property="og:image" content="./images/avatar.jpg" />
+
+		<!-- Enable responsiveness on mobile devices-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+		<title>mnach</title>
+
+		<!-- CSS -->
+		<link href="//fonts.googleapis.com/" rel="dns-prefetch">
+		<link href="//fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic|Abril+Fatface|PT+Sans:400,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet">
+
+		<link rel="stylesheet" href="./theme/css/poole.css" />
+		<link rel="stylesheet" href="./theme/css/hyde.css" />
+		<link rel="stylesheet" href="./theme/css/syntax.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.1.7/css/fork-awesome.min.css" crossorigin="anonymous">
+
+		<!-- Feeds -->
+<link href="https://www.mnacharov.ru/feeds/all.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Full RSS Feed" />
+<link href="https://www.mnacharov.ru/feeds/devops.rss.xml" type="application/rss+xml" rel="alternate" title="mnach Categories RSS Feed" />
+
+		<!-- Analytics -->
+	</head>
+
+	<body class="theme-base-0d">
+<div class="sidebar">
+	<div class="container sidebar-sticky">
+		<div class="sidebar-about">
+
+			<h1>
+				<a href="/">
+					<img class="profile-picture" src="./images/avatar.jpg">
+					mnach
+				</a>
+			</h1>
+			<p class="lead"></p>
+			<p class="lead"> </p>
+			<p></p>
+		</div>
+			<ul class="sidebar-nav">
+					<li><a href="./pages/about.html">Об авторе</a></li>
+			</ul>
+		<nav class="sidebar-social">
+					<a class="sidebar-social-item" href="https://github.com/mnacharov/" target="_blank">
+						<i class="fa fa-GitHub"></i>
+					</a>
+			<a class="sidebar-social-item" href="https://www.mnacharov.ru/feeds/all.rss.xml">
+				<i class="fa fa-rss"></i>
+			</a>
+		</nav>
+	</div>
+</div>		<div class="content container">
+<div class="post">
+	<h1 class="post-title">Fabric автоматизация</h1>
+	<span class="post-date">07/15/16</span>
+	<img alt="fabric deploy web" class="post-image align-left" src="./images/2016-07-15-deploy.png" style="width: 320px;" />
+<p>Итак, Ваш веб-проект, готовый поразить весь мир своей гениальностью, уже написан?
+Тогда вам надо срочно развернуть его на каком-нибудь бесперебойном сервере, типа VPS,
+а потом продолжить добавлять функционал и фиксить баги...</p>
+<p>Однако, зайдя в 100 раз по ssh на сервер и выполнив рутинную цепочку команд:</p>
+<div class="highlight"><pre><span></span>$ git pull
+$ ./manage.py migrate
+$ ./manage.py collecstatic
+$ ./manage.py compilemessages
+$ supervisorctl restart my_best_project
+</pre></div>
+<p>Вы не сможете не задуматься о том, как же всё-таки автоматизировать этот процесс.
+Что ж, для этого обязательно есть решение!</p>
+<p>Тут я приведу один из способов, котором в данный момент пользуюсь: библиотекой
+<a class="reference external" href="http://www.fabfile.org/">Fabric</a> для python</p>
+<div class="section" id="id2">
+<h2>Принцип работы</h2>
+<p>В python есть библиотека <a class="reference external" href="http://www.paramiko.org/">paramiko</a>, которая является
+реализацией SSH протокола, как сервера, так и клиента. С помощью неё также можно
+отправлять файлы по SFTP-протоколу на удалённый сервер, но сейчас речь не об этом.
+Итак, с помощью этой библиотеки мы можем зайти на сервер и выполнить любую команду,
+выглядит это примерно так:</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">paramiko</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ssh</span><span class="o">.</span><span class="n">set_missing_host_key_policy</span><span class="p">(</span><span class="n">paramiko</span><span class="o">.</span><span class="n">AutoAddPolicy</span><span class="p">())</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s1">&#39;stretch&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s1">&#39;lol&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">exec_command</span><span class="p">(</span><span class="s2">&quot;uptime&quot;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">stdout</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="p">[</span><span class="sa">u</span><span class="s1">&#39; 13:25:52 up 8 days, 47 min,  5 users,  load average: 4.89, 4.74, 4.33</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">]</span>
+</pre></div>
+<p>Довольно сложно для запуска 1 команды, не правда ли? Чтобы было удобно обновлять наш проект, придётся сделать некую
+надстройку над этим низким уровнем для удобства работы.</p>
+</div>
+<div class="section" id="id3">
+<h2>Либо взять готовое решение: Fabric</h2>
+<p>Эта библиотека предоставляет удобный интерфейс для написания скриптов удалённо запускаемых команд. Вот как выглядит удалённый запуск того-же uptime:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fabric.api</span> <span class="kn">import</span> <span class="n">run</span><span class="p">,</span> <span class="n">env</span>
+
+<span class="n">env</span><span class="o">.</span><span class="n">hosts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;stretch@localhost&#39;</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">test</span><span class="p">():</span>
+    <span class="n">run</span><span class="p">(</span><span class="s2">&quot;uptime&quot;</span><span class="p">)</span>
+</pre></div>
+<p>Вот так: читаемо и понятно. Сохраняем в файл fabfile.py и выполняем в терминале</p>
+<div class="highlight"><pre><span></span>$ fab <span class="nb">test</span>
+<span class="o">[</span>stretch@localhost<span class="o">]</span> Executing task <span class="s1">&#39;test&#39;</span>
+<span class="o">[</span>stretch@localhost<span class="o">]</span> run: uptime
+<span class="o">[</span>stretch@localhost<span class="o">]</span> out:  <span class="m">13</span>:44:14 up <span class="m">8</span> days,  <span class="m">1</span>:05,  <span class="m">6</span> users,  load average: <span class="m">5</span>.15, <span class="m">4</span>.59, <span class="m">4</span>.47
+<span class="o">[</span>stretch@localhost<span class="o">]</span> out:
+
+
+Done.
+Disconnecting from localhost... <span class="k">done</span>.
+</pre></div>
+<p>Итак, разберём этот пример по-подробней:</p>
+<ol class="arabic simple">
+<li>Мы имеем дело с обычным python-скриптом, т.е. мы можем так-же использовать любые
+другие библиотеки / свои функции в сочетании с fabric</li>
+<li>Библиотека предоставляет набор функций для работы с удалёнными серверами,
+которые расположены в
+<a class="reference external" href="http://docs.fabfile.org/en/1.11/api/core/operations.html">fabric.api.operations</a></li>
+<li>Параметры запуска можно настраивать через специальный объект -
+<a class="reference external" href="http://docs.fabfile.org/en/1.11/usage/env.html">env</a></li>
+<li>Задачи описываются в виде обычных функций, которые могут быть запущены через
+<tt class="docutils literal">fab &lt;имя задачи&gt;</tt>, таким образом отпадает необходимость в конструкции
+<tt class="docutils literal">if __name__ == '__main__':</tt> и ручном разборе параметров запуска
+передавать их в задачу
+<a class="reference external" href="http://docs.fabfile.org/en/1.11/usage/fab.html#task-arguments">тоже очень легко</a></li>
+</ol>
+</div>
+<div class="section" id="id5">
+<h2>Мои рецепты</h2>
+<div class="section" id="cron">
+<h3>Обновляем список задач cron</h3>
+<p>Вы всё ещё в ручную вбиваете список задач крона? Хватит над собой издеваться!
+Файл со списком задач лежит на сервере, а значит он может быть утерян, или исправлен
+кем-то по-ошибке. Кроме того, открыв проект на своей машине, или в репозитории, вы
+не знаете какая задача как часто выполняется и не храните историю изменений этого
+файла. Лучше всего хранить список задач cron в проекте, а на сервере выполнять <tt class="docutils literal">$ cat config/cron.conf | crontab -</tt></p>
+<div class="section" id="fab">
+<h4>fab-задача</h4>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_crontab</span><span class="p">(</span><span class="n">cron_path</span><span class="p">):</span>
+    <span class="n">cron_not_ends_with_new_line</span> <span class="o">=</span> <span class="n">cron_missing</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">with</span> <span class="n">settings</span><span class="p">(</span><span class="n">warn_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">cron_missing</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="s2">&quot;test </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cron_path</span><span class="p">)</span><span class="o">.</span><span class="n">failed</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cron_missing</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;test `tail -n 1 </span><span class="si">%s</span><span class="s2"> | wc --lines` -gt 0&quot;</span> <span class="o">%</span> <span class="n">cron_path</span>
+            <span class="n">cron_not_ends_with_new_line</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">)</span><span class="o">.</span><span class="n">failed</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cron_missing</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cron_not_ends_with_new_line</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">confirm</span><span class="p">(</span><span class="s2">&quot;Your crontab have not been installed! No new line &quot;</span>
+                           <span class="s2">&quot;at the end of the file. Continue anyway?&quot;</span><span class="p">):</span>
+                <span class="n">abort</span><span class="p">(</span><span class="s2">&quot;Aborting at user request.&quot;</span><span class="p">)</span>
+        <span class="n">run</span><span class="p">(</span><span class="s1">&#39;cat </span><span class="si">{cron}</span><span class="s1"> | crontab -&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cron</span><span class="o">=</span><span class="n">cron_path</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h3>Обновление конфигурации веб-сервера</h3>
+<p>То-же самое можно сказать про конфигурацию веб-сервера. Как вы можете быть уверены,
+что всё то, что вы настроили на сервере не пропадёт? Или некий криворукий
+администратор в вашей компании не поправит файл без согласования с Вами? Лучше
+попросить администратора дать вам права на sudo без пароля на команды обновления
+конфигураций сервера. Как-то так</p>
+<blockquote>
+<p>web-project    ALL = NOPASSWD: /bin/cp -f [A-Za-z/.-]*/web-project/prod/[A-Za-z/.-]* /etc/nginx/sites-available/web-project</p>
+<p>web-project    ALL = NOPASSWD: /usr/sbin/service nginx reload</p>
+</blockquote>
+<p>и зашить обновление в задачу fabric</p>
+<div class="section" id="id7">
+<h4>fab-задача</h4>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">update_nginx</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Обновляет конфигурацию nginx&#39;а и запускает их в работу</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1. Копируем конфигурацию файла в конфиг-папку на сервере</span>
+    <span class="n">run</span><span class="p">(</span><span class="s1">&#39;sudo cp -f </span><span class="si">{source}</span><span class="s1"> </span><span class="si">{target}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">config_files</span><span class="p">[</span><span class="s1">&#39;nginx&#39;</span><span class="p">],</span>
+        <span class="n">target</span><span class="o">=</span><span class="n">remote_configs</span><span class="p">[</span><span class="s1">&#39;nginx&#39;</span><span class="p">]))</span>
+    <span class="c1"># 2. Говорим демону перечитать конфигурации</span>
+    <span class="n">run</span><span class="p">(</span><span class="s1">&#39;sudo service nginx reload&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id8">
+<h3>Различные роли серверов</h3>
+<p>Что если проект должен быть развёрнут сразу на нескольких серверах, которые будут заниматься
+решением разных задач? Для этого есть так называемые <a class="reference external" href="http://docs.fabfile.org/en/1.11/usage/execution.html?highlight=roles#roles">роли серверов</a>
+С их помощью Вы можете определить на каких машинах должно выполняться то или иное задание.
+Так например, можно вынести тяжёлые скрипты для обработки данных
+или сложных вычислений на отдельный сервер и ваше веб-приложение не будет тормозить.
+А за счёт автоматизации, период времени когда исполняемый код на серверах отличался
+сводится к минимуму.</p>
+<div class="section" id="id10">
+<h4>fab-задача</h4>
+<div class="highlight"><pre><span></span><span class="n">env</span><span class="o">.</span><span class="n">roledefs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;web&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;my_project@web&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;celery&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;my_project@grinder&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+<span class="c1"># ....</span>
+
+<span class="nd">@task</span>
+<span class="nd">@roles</span><span class="p">(</span><span class="s1">&#39;web&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_web</span><span class="p">():</span>
+    <span class="n">run</span><span class="p">(</span><span class="s2">&quot;git pull&quot;</span><span class="p">)</span>
+    <span class="n">update_nginx</span><span class="p">()</span>
+<span class="c1"># ...</span>
+
+<span class="nd">@task</span>
+<span class="nd">@roles</span><span class="p">(</span><span class="s1">&#39;celery&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_celery</span><span class="p">():</span>
+    <span class="n">run</span><span class="p">(</span><span class="s2">&quot;git pull&quot;</span><span class="p">)</span>
+    <span class="n">update_crontab</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="id11">
+<h2>Заключение</h2>
+<p>В целом мне больше нечего сказать.. Согласен, это был довольно краткий обзор и я не
+рассмотрел все достоинства и недостатки этой библиотеки. Я даже не сравнил её с
+каким-то другим аналогом.</p>
+<p>Главное что я хотел донести: если Вы используете ручной труд для выполнения
+повседневных задач, Ваше время утекает впустую!</p>
+<p>Единственный способ избежать этого - выбрать средство автоматизации и освоить его.</p>
+<p><strong>Успехов!</strong></p>
+</div>
+
+</div>
+		</div>
+	</body>
+</html>
